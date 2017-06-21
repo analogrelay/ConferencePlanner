@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Razor.TagHelpers;
+using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.AspNetCore.Authorization;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
@@ -47,7 +47,8 @@ namespace FrontEnd.TagHelpers
                 }
                 else
                 {
-                    authorized = await _authz.AuthorizeAsync(ViewContext.HttpContext.User, RequiredPolicy);
+                    var result = await _authz.AuthorizeAsync(ViewContext.HttpContext.User, RequiredPolicy);
+                    authorized = result.Succeeded;
                     ViewContext.ViewData["AuthPolicy." + RequiredPolicy] = authorized;
                 }
 
