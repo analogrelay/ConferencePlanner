@@ -18,7 +18,7 @@ namespace BackEnd
             public string Abstract { get; set; }
         }
 
-        private class SessionGroup 
+        private class SessionGroup
         {
             public DateTimeOffset StartTime { get; set; }
 

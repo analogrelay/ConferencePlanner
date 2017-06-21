@@ -1,6 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace BackEnd.Data
 {
@@ -32,7 +30,7 @@ namespace BackEnd.Data
 
             // Many-to-many: Speaker <-> Session
             modelBuilder.Entity<SessionSpeaker>()
-                .HasKey(ss => new { ss.SessionId, ss.SpeakerId});
+                .HasKey(ss => new { ss.SessionId, ss.SpeakerId });
 
             // Many-to-many: Session <-> Tag
             modelBuilder.Entity<SessionTag>()

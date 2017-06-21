@@ -5,7 +5,6 @@ using FrontEnd.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Routing;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace FrontEnd
 {
@@ -31,7 +30,7 @@ namespace FrontEnd
             };
 
             // If the user is already associated then redirect
-            if (context.HttpContext.User.Identity.IsAuthenticated && 
+            if (context.HttpContext.User.Identity.IsAuthenticated &&
                 !ignoreRoutes.Any(path => string.Equals(context.HttpContext.Request.Path, path, StringComparison.OrdinalIgnoreCase)))
             {
                 var attendee = await _apiClient.GetAttendeeAsync(context.HttpContext.User.Identity.Name);
