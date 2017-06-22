@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BackEnd.Data;
@@ -56,7 +55,7 @@ namespace BackEnd
 
             return CreatedAtAction(nameof(Get), new { username = result.UserName }, result);
         }
-        
+
         [HttpPost("{username}/session/{sessionId:int}")]
         public async Task<IActionResult> AddSession(string username, int sessionId)
         {

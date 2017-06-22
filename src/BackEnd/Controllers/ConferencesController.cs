@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
+using BackEnd.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using BackEnd.Data;
 
 namespace BackEnd.Controllers
 {
@@ -43,7 +41,7 @@ namespace BackEnd.Controllers
             {
                 return NotFound();
             }
-            
+
             var result = new ConferenceDTO.ConferenceResponse
             {
                 ID = conference.ID,

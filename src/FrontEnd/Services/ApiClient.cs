@@ -1,4 +1,3 @@
-﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -140,7 +139,7 @@ namespace FrontEnd.Services
         public async Task<List<SessionResponse>> GetSessionsByAttendeeAsync(string name)
         {
             // TODO: Add backend API for this
-            
+
             var sessionsTask = GetSessionsAsync();
             var attendeeTask = GetAttendeeAsync(name);
 
