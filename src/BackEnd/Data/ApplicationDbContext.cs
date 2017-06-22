@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace BackEnd.Data
 {
@@ -50,9 +52,9 @@ namespace BackEnd.Data
         public DbSet<Attendee> Attendees { get; set; }
     }
 
-    //public class ApplicationDbContextFactory : IDbContextFactory<ApplicationDbContext>
-    //{
-    //    public ApplicationDbContext Create(string[] args) =>
-    //        Program.BuildWebHost(args).Services.CreateScope().ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    //}
+    public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
+    {
+        public ApplicationDbContext CreateDbContext(string[] args) =>
+            Program.BuildWebHost(args).Services.CreateScope().ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    }
 }
