@@ -23,6 +23,8 @@ if (!$haveCli -or ("$(dotnet --version)" -ne $sdk.version)) {
     }
 }
 
+$env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE="true"
+
 # Restore!
 Write-Host -ForegroundColor Green "Restoring Packages"
 dotnet restore
