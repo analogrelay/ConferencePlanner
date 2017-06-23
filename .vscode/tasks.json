@@ -1,0 +1,27 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "0.1.0",
+    "tasks": [
+        {
+            "taskName": "build",
+            "command": "dotnet",
+            "args": [
+                "build",
+                "${workspaceRoot}/ConferencePlanner.sln"
+            ]
+        },
+        {
+            "taskName": "verify",
+            "windows": {
+                "command": "${workspaceRoot}/build.cmd"
+            },
+            "linux": {
+                "command": "${workspaceRoot}/build.sh"
+            },
+            "osx": {
+                "command": "${workspaceRoot}/build.sh"
+            }
+        }
+    ]
+}

@@ -1,0 +1,1 @@
+@powershell -NoLogo -ExecutionPolicy Unrestricted -NoProfile "%~dp0build.ps1" %*
