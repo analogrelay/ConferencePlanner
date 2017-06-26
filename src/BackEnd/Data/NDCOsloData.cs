@@ -25,22 +25,17 @@ namespace BackEnd
             public SessionData[] Sessions { get; set; }
         }
 
-        public static void Seed(IServiceProvider services)
+        public static void Seed(ApplicationDbContext db)
         {
-            // TODO: Make this like, good, and only in Dev
-            using (var scope = services.CreateScope())
-            {
-                var db = scope.ServiceProvider.GetService<ApplicationDbContext>();
+            db.Database.EnsureDeleted();
+            db.Database.EnsureCreated();
 
-                db.Database.EnsureDeleted();
-                db.Database.EnsureCreated();
+            // Conference
+            var conference = new Conference { Name = "NDC Oslo 2017" };
+            db.Conferences.Add(conference);
 
-                // Conference
-                var conference = new Conference { Name = "NDC Oslo 2017" };
-                db.Conferences.Add(conference);
-
-                // Speakers
-                var speakers = new[] {
+            // Speakers
+            var speakers = new[] {
                     "Dylan Beattie",
                     "Andy Davies",
                     "Mathew McLoughlin",
@@ -217,19 +212,19 @@ namespace BackEnd
                     "Joakim Lindh",
                 };
 
-                var speakerLookup = new Dictionary<string, Speaker>();
-                foreach (var s in speakers)
+            var speakerLookup = new Dictionary<string, Speaker>();
+            foreach (var s in speakers)
+            {
+                var speaker = new Speaker
                 {
-                    var speaker = new Speaker
-                    {
-                        Name = s
-                    };
-                    db.Speakers.Add(speaker);
-                    speakerLookup[s] = speaker;
-                }
+                    Name = s
+                };
+                db.Speakers.Add(speaker);
+                speakerLookup[s] = speaker;
+            }
 
-                // Tracks
-                var tracks = new[] {
+            // Tracks
+            var tracks = new[] {
                     "Expo",
                     "Room 1",
                     "Room 2",
@@ -243,71 +238,71 @@ namespace BackEnd
                     "Workshop/Room 10"
                 };
 
-                var trackLookup = new Dictionary<string, Track>();
-                foreach (var t in tracks)
+            var trackLookup = new Dictionary<string, Track>();
+            foreach (var t in tracks)
+            {
+                var track = new Track
                 {
-                    var track = new Track
+                    Conference = conference,
+                    Name = t
+                };
+                db.Tracks.Add(track);
+                trackLookup[t] = track;
+            }
+
+            void AddSessions(SessionGroup group)
+            {
+                var end = group.StartTime + TimeSpan.FromHours(1);
+                foreach (var s in group.Sessions)
+                {
+                    var session = new Session
                     {
                         Conference = conference,
-                        Name = t
+                        Title = s.Name,
+                        StartTime = group.StartTime,
+                        EndTime = end,
+                        Track = trackLookup[s.Track],
+                        Abstract = s.Abstract
                     };
-                    db.Tracks.Add(track);
-                    trackLookup[t] = track;
-                }
 
-                void AddSessions(SessionGroup group)
-                {
-                    var end = group.StartTime + TimeSpan.FromHours(1);
-                    foreach (var s in group.Sessions)
+                    session.SessionSpeakers = new List<SessionSpeaker>();
+                    foreach (var sp in s.Speakers)
                     {
-                        var session = new Session
+                        session.SessionSpeakers.Add(new SessionSpeaker
                         {
-                            Conference = conference,
-                            Title = s.Name,
-                            StartTime = group.StartTime,
-                            EndTime = end,
-                            Track = trackLookup[s.Track],
-                            Abstract = s.Abstract
-                        };
-
-                        session.SessionSpeakers = new List<SessionSpeaker>();
-                        foreach (var sp in s.Speakers)
-                        {
-                            session.SessionSpeakers.Add(new SessionSpeaker
-                            {
-                                Session = session,
-                                Speaker = speakerLookup[sp]
-                            });
-                        }
-
-                        db.Sessions.Add(session);
+                            Session = session,
+                            Speaker = speakerLookup[sp]
+                        });
                     }
+
+                    db.Sessions.Add(session);
                 }
+            }
 
-                // Sessions
+            // Sessions
 
-                var sessionGroups = new List<SessionGroup>();
+            var sessionGroups = new List<SessionGroup>();
 
-                // 9:00 - 10:00
-                var startTime = new DateTimeOffset(2017, 6, 14, 9, 0, 0, TimeSpan.FromHours(1));
+            // 9:00 - 10:00
+            var startTime = new DateTimeOffset(2017, 6, 14, 9, 0, 0, TimeSpan.FromHours(1));
 
-                // Wed
-                sessionGroups.Add(new SessionGroup
-                {
-                    StartTime = startTime,
-                    Sessions = new[] {
+            // Wed
+            sessionGroups.Add(new SessionGroup
+            {
+                StartTime = startTime,
+                Sessions = new[] {
                         new SessionData { Name = "Keynote: Are There Any Questions?", Speakers = new[] { "Dylan Beattie" }, Track = "Expo",
                             Abstract = @"Not this time. At NDC Oslo 2017, we're going to turn things upside-down and do the questions right at the beginning. Because, for as long as human beings have existed, we've asked questions. Questions about the world around us. Questions about the past, about the future, about our place in the universe. As our world moves online, the search for answers has become inextricably linked with the history, and the future, of software development. The earliest mechanical calculating machines were built to answer questions - to solve complex mathematical problems many thousands of times faster than their human operators.
 
 Today, in the age of connected devices and machine learning, we live in a world where humans ask questions and expect computers to have the answers. So let's take this chance to ask some of the really big questions: Who are we? How did we get here? How is modern software changing the way we interact with the world around us? Where are the really big questions in modern software development - and who's working on them? And how will those questions shape the future of our relationship with the machines that have become such an important part of our lives?" }
                     }
-                });
+            });
 
-                // Thurs
-                sessionGroups.Add(new SessionGroup
-                {
-                    StartTime = startTime.AddDays(1),
-                    Sessions = new[] {
+            // Thurs
+            sessionGroups.Add(new SessionGroup
+            {
+                StartTime = startTime.AddDays(1),
+                Sessions = new[] {
                         new SessionData { Name = "Keep you data safe in a containerized application", Speakers = new[] { "Hagai Barel" }, Track = "Room 1" },
                         new SessionData { Name = "Building for Alexa with Web API", Speakers = new[] { "Heather Downing" }, Track = "Room 2" },
                         new SessionData { Name = "How to use real-time statistics to pinpoint website performance issues and enhance user experiences", Speakers = new[] { "Hugo Cruz" }, Track = "Room 3" },
@@ -318,13 +313,13 @@ Today, in the age of connected devices and machine learning, we live in a world 
                         new SessionData { Name = "The Future of Calling Microsoft APIs", Speakers = new[] { "Simon Jäger" }, Track = "Room 8" },
                         new SessionData { Name = "Using Trompeloeil - a mocking framework for modern C++", Speakers = new[] { "Björn Fahller" }, Track = "Room 9" },
                     }
-                });
+            });
 
-                // Friday
-                sessionGroups.Add(new SessionGroup
-                {
-                    StartTime = startTime.AddDays(2),
-                    Sessions = new[] {
+            // Friday
+            sessionGroups.Add(new SessionGroup
+            {
+                StartTime = startTime.AddDays(2),
+                Sessions = new[] {
                         new SessionData { Name = "Building ASP.NET apps on Google Cloud", Speakers = new[] { "Mete Atamel" }, Track = "Room 1" },
                         new SessionData { Name = "HoloLens Development: The Next Steps", Speakers = new[] { "Lars Klint" }, Track = "Room 2" },
                         new SessionData { Name = "Beautiful apps with Fuse using your XAML and JavaScript skills", Speakers = new[] { "Christer Veland Aas" }, Track = "Room 3" },
@@ -335,17 +330,17 @@ Today, in the age of connected devices and machine learning, we live in a world 
                         new SessionData { Name = "Building Connected & Disconnected Mobile Apps", Speakers = new[] { "James Montemagno" }, Track = "Room 8" },
                         new SessionData { Name = "Dynamic Teams - Fluidity for the win", Speakers = new[] { "Doc Norton" }, Track = "Room 9" }
                     }
-                });
+            });
 
-                // 10:20 - 11:20
-                startTime = startTime + TimeSpan.FromHours(1) + TimeSpan.FromMinutes(20);
+            // 10:20 - 11:20
+            startTime = startTime + TimeSpan.FromHours(1) + TimeSpan.FromMinutes(20);
 
-                // Wed
-                sessionGroups.Add(new SessionGroup
+            // Wed
+            sessionGroups.Add(new SessionGroup
+            {
+                StartTime = startTime,
+                Sessions = new[]
                 {
-                    StartTime = startTime,
-                    Sessions = new[]
-                    {
                         new SessionData { Name = "Building a Serverless, EventSourced Slack clone", Speakers = new[] { "Andy Davies" }, Track = "Room 1",
                             Abstract = @"EventSourcing and Serverless are all the rage at the moment, and everyone loves Slack...so lets build a Slack clone using the two technologies!
 This talk will go through the implementation, looking at a number of interesting integration properties that EventSourcing gives us, and how we can utilise AWS Lambda to make our service very scalable with very little effort" },
@@ -380,14 +375,14 @@ Dominick & Brock walk you through a couple of approaches and pitfalls and use th
                             Abstract = @"C++17 is around the corner.
 After feature freeze in June 2016, currently the final details are specified. This talk presents all the new language features C++17 will have. Besides the motivation and context of these features examples and background information demonstrate how to benefit from them in practice." },
                     }
-                });
+            });
 
-                // Thurs
-                sessionGroups.Add(new SessionGroup
+            // Thurs
+            sessionGroups.Add(new SessionGroup
+            {
+                StartTime = startTime.AddDays(1),
+                Sessions = new[]
                 {
-                    StartTime = startTime.AddDays(1),
-                    Sessions = new[]
-                    {
                         new SessionData { Name = "Swift For The Curious", Speakers = new[] { "Phil Nash" }, Track = "Room 1" },
                         new SessionData { Name = "Deep Dive into Git", Speakers = new[] { "Edward Thomson" }, Track = "Room 2" },
                         new SessionData { Name = "Build Your Own Face Detection Bot", Speakers = new[] { "Rita Zhang" }, Track = "Room 3" },
@@ -398,14 +393,14 @@ After feature freeze in June 2016, currently the final details are specified. Th
                         new SessionData { Name = "First Class Commands: The 2017 Edition", Speakers = new[] { "Reginald Braithwaite" }, Track = "Room 8" },
                         new SessionData { Name = "Investigating C++ Applications in Production on Linux and Windows", Speakers = new[] { "Sasha Goldshtein" }, Track = "Room 9" },
                     }
-                });
+            });
 
-                // Friday
-                sessionGroups.Add(new SessionGroup
+            // Friday
+            sessionGroups.Add(new SessionGroup
+            {
+                StartTime = startTime.AddDays(2),
+                Sessions = new[]
                 {
-                    StartTime = startTime.AddDays(2),
-                    Sessions = new[]
-                    {
                         new SessionData { Name = "ARM FTW – Azure Resource Manager For The Win", Speakers = new[] { "Magnus Mårtensson" }, Track = "Room 1" },
                         new SessionData { Name = "Azure Functions and Microsoft Cognitive Services Computer Vision API", Speakers = new[] { "Todd Fine" }, Track = "Room 2" },
                         new SessionData { Name = "Building big teams with Nexus", Speakers = new[] { "Martin Hinshelwood" }, Track = "Room 3" },
@@ -417,17 +412,17 @@ After feature freeze in June 2016, currently the final details are specified. Th
                         new SessionData { Name = "User Experience at Every Level of Business", Speakers = new[] { "Christina Aldan" }, Track = "Room 9" },
                         new SessionData { Name = "Get Better With All Things Git", Speakers = new[] { "Asbjørn Ulsberg" }, Track = "Workshop/Room 10" },
                     }
-                });
+            });
 
-                // 11:40 - 12:40
-                startTime = startTime + TimeSpan.FromHours(1) + TimeSpan.FromMinutes(20);
+            // 11:40 - 12:40
+            startTime = startTime + TimeSpan.FromHours(1) + TimeSpan.FromMinutes(20);
 
-                // Wed
-                sessionGroups.Add(new SessionGroup
+            // Wed
+            sessionGroups.Add(new SessionGroup
+            {
+                StartTime = startTime,
+                Sessions = new[]
                 {
-                    StartTime = startTime,
-                    Sessions = new[]
-                    {
                         new SessionData { Name = "Serilog: Instrumentation that Works for You", Speakers = new[] { "Nicholas Blumhardt" }, Track = "Room 1" },
                         new SessionData { Name = "Efficient Time Series with PostgreSQL", Speakers = new[] { "Steve Simpson" }, Track = "Room 2" },
                         new SessionData { Name = "Becoming the bottleneck", Speakers = new[] { "Erlend Wiig" }, Track = "Room 3" },
@@ -439,14 +434,14 @@ After feature freeze in June 2016, currently the final details are specified. Th
                         new SessionData { Name = "Fast and Small - What are the Costs of Language Features", Speakers = new[] { "Andreas Fertig" }, Track = "Room 9" },
                         new SessionData { Name = "Stop Building Useless Software", Speakers = new[] { "Diane Zajac-Woodie" }, Track = "Workshop/Room 10" },
                     }
-                });
+            });
 
-                // Thurs
-                sessionGroups.Add(new SessionGroup
+            // Thurs
+            sessionGroups.Add(new SessionGroup
+            {
+                StartTime = startTime.AddDays(1),
+                Sessions = new[]
                 {
-                    StartTime = startTime.AddDays(1),
-                    Sessions = new[]
-                    {
                         new SessionData { Name = "The Developer’s Guide to Promoting Their Work", Speakers = new[] { "Todd Gardner" }, Track = "Room 1" },
                         new SessionData { Name = "From zero to hero using Visual Studio Team Service", Speakers = new[] { "Anthony Borton" }, Track = "Room 2" },
                         new SessionData { Name = "Debugging and Profiling .NET Core Apps on Linux", Speakers = new[] { "Sasha Goldshtein" }, Track = "Room 3" },
@@ -456,15 +451,15 @@ After feature freeze in June 2016, currently the final details are specified. Th
                         new SessionData { Name = "Emerging Web Security Standards", Speakers = new[] { "Scott Helme" }, Track = "Room 7" },
                         new SessionData { Name = "C++ Unit testing - the good, the bad & the ugly", Speakers = new[] { "Dror Helper" }, Track = "Room 9" },
                     }
-                });
+            });
 
 
-                // Friday
-                sessionGroups.Add(new SessionGroup
+            // Friday
+            sessionGroups.Add(new SessionGroup
+            {
+                StartTime = startTime.AddDays(2),
+                Sessions = new[]
                 {
-                    StartTime = startTime.AddDays(2),
-                    Sessions = new[]
-                    {
                         new SessionData { Name = "Terraform - colonising Azure!", Speakers = new[] { "Stefan Magnus Landrø" }, Track = "Room 1" },
                         new SessionData { Name = "Analyzing 33 million bike trips with BigQuery", Speakers = new[] { "Sara Robinson" }, Track = "Room 2" },
                         new SessionData { Name = "Visual Studio Mobile Center: Fast and Fun Continuous Delivery for Mobile apps", Speakers = new[] { "Karl Krukow" }, Track = "Room 3" },
@@ -474,17 +469,17 @@ After feature freeze in June 2016, currently the final details are specified. Th
                         new SessionData { Name = "High Performance API on Kubernetes", Speakers = new[] { "Ken Grønnbeck" }, Track = "Room 7" },
                         new SessionData { Name = "Talk: Open Source Software Foundations: Not Totally Boring, Actually Super Awesome", Speakers = new[] { "Jon Galloway" }, Track = "Room 8" },
                     }
-                });
+            });
 
-                // 13:40 - 14:40
-                startTime = startTime + TimeSpan.FromHours(2);
+            // 13:40 - 14:40
+            startTime = startTime + TimeSpan.FromHours(2);
 
-                // Wed
-                sessionGroups.Add(new SessionGroup
+            // Wed
+            sessionGroups.Add(new SessionGroup
+            {
+                StartTime = startTime,
+                Sessions = new[]
                 {
-                    StartTime = startTime,
-                    Sessions = new[]
-                    {
                         new SessionData { Name = "Going Serverless with GraphQL", Speakers = new[] { "​Steve Faulkner" }, Track = "Room 1" },
                         new SessionData { Name = "AB-tests, lies, damned lies, and statistics.", Speakers = new[] { "Emil Cardell" }, Track = "Room 2" },
                         new SessionData { Name = "Composing high performance process workflows with Akka Streams", Speakers = new[] { "Vagif Abilov" }, Track = "Room 3" },
@@ -496,14 +491,14 @@ After feature freeze in June 2016, currently the final details are specified. Th
                         new SessionData { Name = "C++17 part 2: The Library Features", Speakers = new[] { "Nicolai Josuttis" }, Track = "Room 9" },
                         new SessionData { Name = "Functional Programming Lab Hour", Speakers = new[] { "Tomas Jansson ","Mathias Brandewinder" }, Track = "Workshop/Room 10" },
                     }
-                });
+            });
 
-                // Thurs
-                sessionGroups.Add(new SessionGroup
+            // Thurs
+            sessionGroups.Add(new SessionGroup
+            {
+                StartTime = startTime.AddDays(1),
+                Sessions = new[]
                 {
-                    StartTime = startTime.AddDays(1),
-                    Sessions = new[]
-                    {
                         new SessionData { Name = "Keeping the Noisy Neighbors Happy", Speakers = new[] { "Eran Stiller" }, Track = "Room 1" },
                         new SessionData { Name = "JavaScript in 2017: You might (not) need a framework", Speakers = new[] { "David Vujic" }, Track = "Room 2" },
                         new SessionData { Name = ".NET Blub: Frameworks beyond Microsoft", Speakers = new[] { "Joe Stead" }, Track = "Room 3" },
@@ -515,14 +510,14 @@ After feature freeze in June 2016, currently the final details are specified. Th
                         new SessionData { Name = "Linux Security and How Web Browser Sandboxes Really Work", Speakers = new[] { "Patricia Aas" }, Track = "Room 9" },
                         new SessionData { Name = "Functional Programming Lab Hour", Speakers = new[] { "Tomas Jansson ","Mathias Brandewinder " }, Track = "Workshop/Room 10" },
                     }
-                });
+            });
 
-                // Friday
-                sessionGroups.Add(new SessionGroup
+            // Friday
+            sessionGroups.Add(new SessionGroup
+            {
+                StartTime = startTime.AddDays(2),
+                Sessions = new[]
                 {
-                    StartTime = startTime.AddDays(2),
-                    Sessions = new[]
-                    {
                         new SessionData { Name = "Multi-container applications with .NET Core on Kubernetes", Speakers = new[] { "Magnus Stuhr","Ståle Heitmann" }, Track = "Room 1" },
                         new SessionData { Name = "Practical Empathy: Unlock the Super Power", Speakers = new[] { "Pavneet Singh Saund" }, Track = "Room 2" },
                         new SessionData { Name = "JavaScript Metaprogramming - ES6 Proxy Use and Abuse", Speakers = new[] { "Eirik Langholm Vullum" }, Track = "Room 3" },
@@ -533,17 +528,17 @@ After feature freeze in June 2016, currently the final details are specified. Th
                         new SessionData { Name = "Better: Fearless Feedback for Software Teams", Speakers = new[] { "Erika Carlson" }, Track = "Room 9" },
                         new SessionData { Name = "Functional Programming Lab Hour", Speakers = new[] { "Tomas Jansson ","Mathias Brandewinder " }, Track = "Workshop/Room 10" },
                     }
-                });
+            });
 
-                // 15:00 - 16:00
-                startTime = startTime + TimeSpan.FromHours(1) + TimeSpan.FromMinutes(20);
+            // 15:00 - 16:00
+            startTime = startTime + TimeSpan.FromHours(1) + TimeSpan.FromMinutes(20);
 
-                // Wed
-                sessionGroups.Add(new SessionGroup
+            // Wed
+            sessionGroups.Add(new SessionGroup
+            {
+                StartTime = startTime,
+                Sessions = new[]
                 {
-                    StartTime = startTime,
-                    Sessions = new[]
-                    {
                         new SessionData { Name = "What CRDTs, distributed editing and the speed of light means to your writer friends.", Speakers = new[] { "Jonathan Martin" }, Track = "Room 1" },
                         new SessionData { Name = "From Monolith to Serverless", Speakers = new[] { "Rajpal Wilkhu" }, Track = "Room 2" },
                         new SessionData { Name = "Using C#'s Type System Effectively", Speakers = new[] { "Benjamin Hodgson" }, Track = "Room 3" },
@@ -555,14 +550,14 @@ After feature freeze in June 2016, currently the final details are specified. Th
                         new SessionData { Name = "Working with C++ Legacy Code", Speakers = new[] { "Dror Helper" }, Track = "Room 9" },
                         new SessionData { Name = "Speak Up! and Make Your Message Stick - Part I", Speakers = new[] { "Denise Jacobs","Jessie Shternshus" }, Track = "Workshop/Room 10" },
                     }
-                });
+            });
 
-                // Thurs
-                sessionGroups.Add(new SessionGroup
+            // Thurs
+            sessionGroups.Add(new SessionGroup
+            {
+                StartTime = startTime.AddDays(1),
+                Sessions = new[]
                 {
-                    StartTime = startTime.AddDays(1),
-                    Sessions = new[]
-                    {
                         new SessionData { Name = "Building intelligent bots", Speakers = new[] { "David Lindblad" }, Track = "Room 1" },
                         new SessionData { Name = "TBA", Speakers = new[] { "Cristian Prieto" }, Track = "Room 2" },
                         new SessionData { Name = "State of the .NET Performance", Speakers = new[] { "Adam Sitnik" }, Track = "Room 3" },
@@ -573,14 +568,14 @@ After feature freeze in June 2016, currently the final details are specified. Th
                         new SessionData { Name = "Everything You Always Wanted to Know About Azure Security But Were Afraid to Ask", Speakers = new[] { "Viktorija Almazova" }, Track = "Room 8" },
                         new SessionData { Name = "Aurelia vs “just Angular” a.k.a “the framework formerly known as Angular 2”", Speakers = new[] { "​Chris Klug" }, Track = "Room 9" },
                     }
-                });
+            });
 
-                // Friday
-                sessionGroups.Add(new SessionGroup
+            // Friday
+            sessionGroups.Add(new SessionGroup
+            {
+                StartTime = startTime.AddDays(2),
+                Sessions = new[]
                 {
-                    StartTime = startTime.AddDays(2),
-                    Sessions = new[]
-                    {
                         new SessionData { Name = "The Hybrid Docker Swarm: Mashing Windows and Linux Apps with Containers", Speakers = new[] { "Elton Stoneman" }, Track = "Room 1" },
                         new SessionData { Name = "TBA", Speakers = new[] { "Allen Holub" }, Track = "Room 2" },
                         new SessionData { Name = "Microservices with Service Fabric. Easy... or is it?", Speakers = new[] { "Daniel Marbach" }, Track = "Room 3" },
@@ -591,17 +586,17 @@ After feature freeze in June 2016, currently the final details are specified. Th
                         new SessionData { Name = "Coroutine Concurrency in Python 3 with asyncio", Speakers = new[] { "Robert Smallshire " }, Track = "Room 8" },
                         new SessionData { Name = "Adopting open source in your organization", Speakers = new[] { "Edward Thomson" }, Track = "Room 9" },
                     }
-                });
+            });
 
-                // 16:20 - 17:20
-                startTime = startTime + TimeSpan.FromHours(1) + TimeSpan.FromMinutes(20);
+            // 16:20 - 17:20
+            startTime = startTime + TimeSpan.FromHours(1) + TimeSpan.FromMinutes(20);
 
-                // Wed
-                sessionGroups.Add(new SessionGroup
+            // Wed
+            sessionGroups.Add(new SessionGroup
+            {
+                StartTime = startTime,
+                Sessions = new[]
                 {
-                    StartTime = startTime,
-                    Sessions = new[]
-                    {
                         new SessionData { Name = "Paying taxes for fun and profit", Speakers = new[] { "Petter Hesselberg" }, Track = "Room 1" },
                         new SessionData { Name = "Become a Visual Studio Ninja", Speakers = new[] { "Cecilia Wirén" }, Track = "Room 2" },
                         new SessionData { Name = "When Feature flags go bad", Speakers = new[] { "Edith Harbaugh" }, Track = "Room 3" },
@@ -613,14 +608,14 @@ After feature freeze in June 2016, currently the final details are specified. Th
                         new SessionData { Name = "Functional C++ for Fun & Profit", Speakers = new[] { "Phil Nash" }, Track = "Room 9" },
                         new SessionData { Name = "Speak Up! and Make Your Message Stick - Part II", Speakers = new[] { "Denise Jacobs","Jessie Shternshus" }, Track = "Workshop/Room 10" },
                     }
-                });
+            });
 
-                // Thurs
-                sessionGroups.Add(new SessionGroup
+            // Thurs
+            sessionGroups.Add(new SessionGroup
+            {
+                StartTime = startTime.AddDays(1),
+                Sessions = new[]
                 {
-                    StartTime = startTime.AddDays(1),
-                    Sessions = new[]
-                    {
                         new SessionData { Name = "TBA", Speakers = new[] { "Dylan Beattie","Mark Rendle" }, Track = "Room 1" },
                         new SessionData { Name = "Technology just killed the company - all hail the platforms", Speakers = new[] { "Jahn Arne Johnsen" }, Track = "Room 2" },
                         new SessionData { Name = "Take Control of the Data of You", Speakers = new[] { "Nigel Parker" }, Track = "Room 3" },
@@ -631,14 +626,14 @@ After feature freeze in June 2016, currently the final details are specified. Th
                         new SessionData { Name = "The (Awesome) Future of Web Apps", Speakers = new[] { "Jad Joubran" }, Track = "Room 8" },
                         new SessionData { Name = "Crappy to Happy: Strategies to Help You Kick Butt at Work", Speakers = new[] { "Kylie Hunt" }, Track = "Room 9" },
                     }
-                });
+            });
 
-                // Friday
-                sessionGroups.Add(new SessionGroup
+            // Friday
+            sessionGroups.Add(new SessionGroup
+            {
+                StartTime = startTime.AddDays(2),
+                Sessions = new[]
                 {
-                    StartTime = startTime.AddDays(2),
-                    Sessions = new[]
-                    {
                         new SessionData { Name = "Building a Global App With Azure PaaS", Speakers = new[] { "Barry Luijbregts" }, Track = "Room 1" },
                         new SessionData { Name = " Identity Server 4 with Angular and ASP.NET Core", Speakers = new[] { "Ben Cull" }, Track = "Room 2" },
                         new SessionData { Name = "Scaling Agile in your Organization with the Spotify Model", Speakers = new[] { "Stephen Haunts" }, Track = "Room 3" },
@@ -649,17 +644,17 @@ After feature freeze in June 2016, currently the final details are specified. Th
                         new SessionData { Name = "Badass 101", Speakers = new[] { "Lyndsey Padget" }, Track = "Room 8" },
                         new SessionData { Name = "The state of IoT in 2017 and how Norwegian Technology make IoT Easy", Speakers = new[] { "Joakim Lindh" }, Track = "Room 9" },
                     }
-                });
+            });
 
-                // 17:40 - 18:40
-                startTime = startTime + TimeSpan.FromHours(1) + TimeSpan.FromMinutes(20);
+            // 17:40 - 18:40
+            startTime = startTime + TimeSpan.FromHours(1) + TimeSpan.FromMinutes(20);
 
-                // Wed
-                sessionGroups.Add(new SessionGroup
+            // Wed
+            sessionGroups.Add(new SessionGroup
+            {
+                StartTime = startTime,
+                Sessions = new[]
                 {
-                    StartTime = startTime,
-                    Sessions = new[]
-                    {
                         new SessionData { Name = "Azure Cosmos DB - The Best NoSQL Database You're Probably Not Using (Yet)", Speakers = new[] { "Josh Lane" }, Track = "Room 1" },
                         new SessionData { Name = "Easy Eventual Consistency with Actor Models + Amazon Web Services", Speakers = new[] { "Philip Laureano" }, Track = "Room 2" },
                         new SessionData { Name = "AWS Serverless with .NET Core", Speakers = new[] { "Norm Johanson" }, Track = "Room 3" },
@@ -670,14 +665,14 @@ After feature freeze in June 2016, currently the final details are specified. Th
                         new SessionData { Name = "ASP.NET Core for Angular, React, and Knockout developers", Speakers = new[] { "Steve Sanderson" }, Track = "Room 8" },
                         new SessionData { Name = "C++ Performance and Optimisation", Speakers = new[] { "Hubert Matthews" }, Track = "Room 9" },
                     }
-                });
+            });
 
-                // Thurs
-                sessionGroups.Add(new SessionGroup
+            // Thurs
+            sessionGroups.Add(new SessionGroup
+            {
+                StartTime = startTime.AddDays(1),
+                Sessions = new[]
                 {
-                    StartTime = startTime.AddDays(1),
-                    Sessions = new[]
-                    {
                         new SessionData { Name = "The Web lands in the Virtual and Mixed Realities", Speakers = new[] { "Maximiliano Firtman" }, Track = "Room 1" },
                         new SessionData { Name = "Getting Started with Electron", Speakers = new[] { "Brendan Forster" }, Track = "Room 2" },
                         new SessionData { Name = "Successful Code Sharing Principles for Mobile Development", Speakers = new[] { "Filip Ekberg" }, Track = "Room 3" },
@@ -688,15 +683,14 @@ After feature freeze in June 2016, currently the final details are specified. Th
                         new SessionData { Name = "Designing great progressive web apps", Speakers = new[] { "Nicole Saidy" }, Track = "Room 8" },
                         new SessionData { Name = "An Opinionated, Maintainable REST API Architecture for ASP.NET Core", Speakers = new[] { "Spencer Schneidenbach" }, Track = "Room 9" },
                     }
-                });
+            });
 
-                foreach (var group in sessionGroups)
-                {
-                    AddSessions(group);
-                }
-
-                db.SaveChanges();
+            foreach (var group in sessionGroups)
+            {
+                AddSessions(group);
             }
+
+            db.SaveChanges();
         }
     }
 }

@@ -63,8 +63,6 @@ namespace BackEnd
                 context.Response.Redirect("/swagger");
                 return Task.CompletedTask;
             });
-
-            NDCOsloData.Seed(app.ApplicationServices);
         }
     }
 }
