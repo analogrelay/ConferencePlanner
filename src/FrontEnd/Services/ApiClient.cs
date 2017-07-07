@@ -5,16 +5,19 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using ConferenceDTO;
 using FrontEnd.Infrastructure;
+using Microsoft.AspNetCore.Http;
 
 namespace FrontEnd.Services
 {
     public class ApiClient : IApiClient
     {
         private readonly HttpClient _httpClient;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public ApiClient(HttpClient httpClient)
+        public ApiClient(HttpClient httpClient, IHttpContextAccessor httpContextAccessor)
         {
             _httpClient = httpClient;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task AddAttendeeAsync(Attendee attendee)
@@ -22,6 +25,20 @@ namespace FrontEnd.Services
             var response = await _httpClient.PostJsonAsync($"/api/attendees", attendee);
 
             response.EnsureSuccessStatusCode();
+        }
+
+        public async Task<AttendeeResponse> GetMeAsync()
+        {
+            var response = await _httpClient.GetAsync("/api/attendees/@me");
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
+
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content.ReadAsJsonAsync<AttendeeResponse>();
         }
 
         public async Task<AttendeeResponse> GetAttendeeAsync(string name)
@@ -124,14 +141,14 @@ namespace FrontEnd.Services
 
         public async Task AddSessionToAttendeeAsync(string name, int sessionId)
         {
-            var response = await _httpClient.PostAsync($"/api/attendees/{name}/session/{sessionId}", null);
+            var response = await _httpClient.PostAsync($"/api/attendees/{name}/sessions/{sessionId}", null);
 
             response.EnsureSuccessStatusCode();
         }
 
         public async Task RemoveSessionFromAttendeeAsync(string name, int sessionId)
         {
-            var response = await _httpClient.DeleteAsync($"/api/attendees/{name}/session/{sessionId}");
+            var response = await _httpClient.DeleteAsync($"/api/attendees/{name}/sessions/{sessionId}");
 
             response.EnsureSuccessStatusCode();
         }
@@ -139,7 +156,6 @@ namespace FrontEnd.Services
         public async Task<List<SessionResponse>> GetSessionsByAttendeeAsync(string name)
         {
             // TODO: Add backend API for this
-
             var sessionsTask = GetSessionsAsync();
             var attendeeTask = GetAttendeeAsync(name);
 

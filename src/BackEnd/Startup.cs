@@ -1,6 +1,8 @@
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using BackEnd.Data;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -33,13 +35,37 @@ namespace BackEnd
                 }
             });
 
-            services.AddMvcCore()
-                .AddJsonFormatters()
-                .AddApiExplorer();
+            services
+                .AddAuthentication(options =>
+                {
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
+                .AddJwtBearer(options =>
+                {
+                    options.Authority = $"https://login.microsoftonline.com/tfp/{Configuration["Authentication:Tenant"]}/{Configuration["Authentication:PolicyId"]}/v2.0/";
+                    options.Audience = Configuration["Authentication:ClientId"];
+                });
+
+            services.AddMvc()
+                .AddJsonOptions(options =>
+                {
+                    options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
+                });
+
+            services.AddAuthorization(options =>
+            {
+                options.DefaultPolicy = new AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
+                    .RequireClaim("http://schemas.microsoft.com/identity/claims/objectidentifier")
+                    .Build();
+            });
 
             services.AddSwaggerGen(options =>
-                options.SwaggerDoc("v1", new Info { Title = "Conference Planner API", Version = "v1" })
-            );
+            {
+                options.SwaggerDoc("v1", new Info { Title = "Conference Planner API", Version = "v1" });
+            });
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
@@ -55,6 +81,8 @@ namespace BackEnd
             app.UseSwaggerUI(options =>
                 options.SwaggerEndpoint("/swagger/v1/swagger.json", "Conference Planner API v1")
             );
+
+            app.UseAuthentication();
 
             app.UseMvc();
 

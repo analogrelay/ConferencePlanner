@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using BackEnd.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,6 +15,17 @@ namespace BackEnd
         public AttendeesController(ApplicationDbContext db)
         {
             _db = db;
+        }
+
+        [Authorize]
+        [HttpGet("@me")]
+        public async Task<IActionResult> GetMe()
+        {
+            Attendee attendee = await AttendeeHelper.GetAndUpdateAttendeeAsync(_db, User);
+
+            var result = attendee.MapAttendeeResponse();
+
+            return Ok(result);
         }
 
         [HttpGet("{username}")]
@@ -33,30 +45,7 @@ namespace BackEnd
             return Ok(result);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Post([FromBody]ConferenceDTO.Attendee input)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var attendee = new Attendee
-            {
-                FirstName = input.FirstName,
-                LastName = input.LastName,
-                UserName = input.UserName
-            };
-
-            _db.Attendees.Add(attendee);
-            await _db.SaveChangesAsync();
-
-            var result = attendee.MapAttendeeResponse();
-
-            return CreatedAtAction(nameof(Get), new { username = result.UserName }, result);
-        }
-
-        [HttpPost("{username}/session/{sessionId:int}")]
+        [HttpPost("{username}/sessions/{sessionId:int}")]
         public async Task<IActionResult> AddSession(string username, int sessionId)
         {
             var attendee = await _db.Attendees.Include(a => a.SessionsAttendees)
@@ -90,7 +79,7 @@ namespace BackEnd
             return Ok(result);
         }
 
-        [HttpDelete("{username}/session/{sessionId:int}")]
+        [HttpDelete("{username}/sessions/{sessionId:int}")]
         public async Task<IActionResult> RemoveSession(string username, int sessionId)
         {
             var attendee = await _db.Attendees.Include(a => a.SessionsAttendees)

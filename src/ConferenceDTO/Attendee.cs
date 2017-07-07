@@ -6,11 +6,11 @@ namespace ConferenceDTO
     {
         public int ID { get; set; }
 
-        [Required]
+        public string DirectoryObjectId { get; set; }
+
         [StringLength(200)]
         public virtual string FirstName { get; set; }
 
-        [Required]
         [StringLength(200)]
         public virtual string LastName { get; set; }
 
