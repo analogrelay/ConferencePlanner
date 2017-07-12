@@ -1,6 +1,7 @@
 using System;
 using System.Net.Http;
 using FrontEnd.Authentication;
+using FrontEnd.Filters;
 using FrontEnd.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -25,11 +26,17 @@ namespace FrontEnd
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc()
+            services
+                .AddMvc(options =>
+                {
+                    options.Filters.AddService<EnsureProfileCompleteFilter>();
+                })
                 .AddRazorPagesOptions(options =>
                 {
                     options.Conventions.AuthorizeFolder("/admin", "Admin");
                 });
+
+            services.AddSingleton<EnsureProfileCompleteFilter>();
 
             services.Configure<AzureAdB2COptions>(Configuration.GetSection("Authentication"));
             services.AddSingleton<IConfigureOptions<OpenIdConnectOptions>, OpenIdConnectOptionsSetup>();

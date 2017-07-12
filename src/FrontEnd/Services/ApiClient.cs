@@ -2,40 +2,48 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using ConferenceDTO;
 using FrontEnd.Infrastructure;
-using Microsoft.AspNetCore.Http;
 
 namespace FrontEnd.Services
 {
     public class ApiClient : IApiClient
     {
         private readonly HttpClient _httpClient;
-        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public ApiClient(HttpClient httpClient, IHttpContextAccessor httpContextAccessor)
+        public ApiClient(HttpClient httpClient)
         {
             _httpClient = httpClient;
-            _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task AddAttendeeAsync(Attendee attendee)
+        public async Task<AttendeeResponse> GetMeAsync(string accessToken)
         {
-            var response = await _httpClient.PostJsonAsync($"/api/attendees", attendee);
+            var request = new HttpRequestMessage(HttpMethod.Get, "/api/attendees/@me");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
-            response.EnsureSuccessStatusCode();
-        }
+            var response = await _httpClient.SendAsync(request);
 
-        public async Task<AttendeeResponse> GetMeAsync()
-        {
-            var response = await _httpClient.GetAsync("/api/attendees/@me");
-
-            if (response.StatusCode == HttpStatusCode.NotFound)
+            if(response.StatusCode == HttpStatusCode.NotFound)
             {
+                // The user hasn't been registered. Return null in that case
                 return null;
             }
+            else
+            {
+                // Any other error is unexpected
+                response.EnsureSuccessStatusCode();
+                return await response.Content.ReadAsJsonAsync<AttendeeResponse>();
+            }
+        }
 
+        public async Task<AttendeeResponse> AddAttendeeAsync(Attendee attendee, string accessToken)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, "/api/attendees");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+            var response = await _httpClient.SendJsonAsync(request, attendee);
             response.EnsureSuccessStatusCode();
 
             return await response.Content.ReadAsJsonAsync<AttendeeResponse>();

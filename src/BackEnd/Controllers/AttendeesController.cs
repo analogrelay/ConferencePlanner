@@ -1,4 +1,7 @@
+using System;
+using System.Diagnostics;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using BackEnd.Data;
 using Microsoft.AspNetCore.Authorization;
@@ -21,11 +24,39 @@ namespace BackEnd
         [HttpGet("@me")]
         public async Task<IActionResult> GetMe()
         {
-            Attendee attendee = await AttendeeHelper.GetAndUpdateAttendeeAsync(_db, User);
+            var (attendee, _) = await GetAttendeeForCurrentUserAsync();
+            if (attendee == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                var result = attendee.MapAttendeeResponse();
+                return Ok(result);
+            }
+        }
 
-            var result = attendee.MapAttendeeResponse();
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> PostAsync([FromBody] Attendee attendee)
+        {
+            // Check if there is already an attendee for this user
+            var (dbAttendee, objectId) = await GetAttendeeForCurrentUserAsync();
+            if (dbAttendee == null)
+            {
+                dbAttendee = new Attendee()
+                {
+                    DirectoryObjectId = objectId
+                };
+                _db.Attendees.Add(dbAttendee);
+            }
 
-            return Ok(result);
+            dbAttendee.UserName = attendee.UserName;
+            dbAttendee.FirstName = attendee.FirstName;
+            dbAttendee.LastName = attendee.LastName;
+            await _db.SaveChangesAsync();
+
+            return Ok(dbAttendee.MapAttendeeResponse());
         }
 
         [HttpGet("{username}")]
@@ -103,6 +134,15 @@ namespace BackEnd
             await _db.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        private async Task<(Attendee attendee, string objectId)> GetAttendeeForCurrentUserAsync()
+        {
+            var objectId = User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier")?.Value;
+            Debug.Assert(objectId != null);
+
+            var attendee = await _db.Attendees.FirstOrDefaultAsync(a => a.DirectoryObjectId == objectId);
+            return (attendee, objectId);
         }
     }
 }

@@ -12,7 +12,9 @@ namespace FrontEnd.Controllers
         public async Task Login()
         {
             await HttpContext.ChallengeAsync(
-                OpenIdConnectDefaults.AuthenticationScheme, new AuthenticationProperties() { RedirectUri = "/" });
+                OpenIdConnectDefaults.AuthenticationScheme, new AuthenticationProperties() {
+                    RedirectUri = "/"
+                });
         }
 
         [HttpPost]

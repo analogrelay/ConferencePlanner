@@ -1,0 +1,44 @@
+@page
+@model WelcomeModel
+@{
+    ViewData["Title"] = "Set up your profile";
+}
+<h2>@ViewData["Title"].</h2>
+
+<p>It looks like you're new here. Let's set up your profile.</p>
+
+<form method="post">
+    <div asp-validation-summary="All" class="text-danger"></div>
+    <div class="form-group">
+        <label asp-for="Attendee.UserName" class="control-label"></label>
+        <div class="row">
+            <div class="col-md-6">
+                <input asp-for="Attendee.UserName" class="form-control" />
+            </div>
+        </div>
+        <span asp-validation-for="Attendee.UserName" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Attendee.FirstName" class="control-label"></label>
+        <div class="row">
+            <div class="col-md-6">
+                <input asp-for="Attendee.FirstName" class="form-control" />
+            </div>
+        </div>
+        <span asp-validation-for="Attendee.FirstName" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Attendee.LastName" class="control-label"></label>
+        <div class="row">
+            <div class="col-md-6">
+                <input asp-for="Attendee.LastName" class="form-control" />
+            </div>
+        </div>
+        <span asp-validation-for="Attendee.LastName" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <div class="">
+            <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+    </div>
+</form>
