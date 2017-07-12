@@ -1,6 +1,10 @@
+using System;
+using System.Diagnostics;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using BackEnd.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,6 +18,45 @@ namespace BackEnd
         public AttendeesController(ApplicationDbContext db)
         {
             _db = db;
+        }
+
+        [Authorize]
+        [HttpGet("@me")]
+        public async Task<IActionResult> GetMe()
+        {
+            var (attendee, _) = await GetAttendeeForCurrentUserAsync();
+            if (attendee == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                var result = attendee.MapAttendeeResponse();
+                return Ok(result);
+            }
+        }
+
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> PostAsync([FromBody] Attendee attendee)
+        {
+            // Check if there is already an attendee for this user
+            var (dbAttendee, objectId) = await GetAttendeeForCurrentUserAsync();
+            if (dbAttendee == null)
+            {
+                dbAttendee = new Attendee()
+                {
+                    DirectoryObjectId = objectId
+                };
+                _db.Attendees.Add(dbAttendee);
+            }
+
+            dbAttendee.UserName = attendee.UserName;
+            dbAttendee.FirstName = attendee.FirstName;
+            dbAttendee.LastName = attendee.LastName;
+            await _db.SaveChangesAsync();
+
+            return Ok(dbAttendee.MapAttendeeResponse());
         }
 
         [HttpGet("{username}")]
@@ -33,30 +76,7 @@ namespace BackEnd
             return Ok(result);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Post([FromBody]ConferenceDTO.Attendee input)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var attendee = new Attendee
-            {
-                FirstName = input.FirstName,
-                LastName = input.LastName,
-                UserName = input.UserName
-            };
-
-            _db.Attendees.Add(attendee);
-            await _db.SaveChangesAsync();
-
-            var result = attendee.MapAttendeeResponse();
-
-            return CreatedAtAction(nameof(Get), new { username = result.UserName }, result);
-        }
-
-        [HttpPost("{username}/session/{sessionId:int}")]
+        [HttpPost("{username}/sessions/{sessionId:int}")]
         public async Task<IActionResult> AddSession(string username, int sessionId)
         {
             var attendee = await _db.Attendees.Include(a => a.SessionsAttendees)
@@ -90,7 +110,7 @@ namespace BackEnd
             return Ok(result);
         }
 
-        [HttpDelete("{username}/session/{sessionId:int}")]
+        [HttpDelete("{username}/sessions/{sessionId:int}")]
         public async Task<IActionResult> RemoveSession(string username, int sessionId)
         {
             var attendee = await _db.Attendees.Include(a => a.SessionsAttendees)
@@ -114,6 +134,15 @@ namespace BackEnd
             await _db.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        private async Task<(Attendee attendee, string objectId)> GetAttendeeForCurrentUserAsync()
+        {
+            var objectId = User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier")?.Value;
+            Debug.Assert(objectId != null);
+
+            var attendee = await _db.Attendees.FirstOrDefaultAsync(a => a.DirectoryObjectId == objectId);
+            return (attendee, objectId);
         }
     }
 }

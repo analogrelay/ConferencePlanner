@@ -11,9 +11,10 @@ using System;
 namespace BackEnd.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20170630173537_AddDirectoryIdToAttendees")]
+    partial class AddDirectoryIdToAttendees
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -31,9 +32,11 @@ namespace BackEnd.Migrations
                         .HasMaxLength(256);
 
                     b.Property<string>("FirstName")
+                        .IsRequired()
                         .HasMaxLength(200);
 
                     b.Property<string>("LastName")
+                        .IsRequired()
                         .HasMaxLength(200);
 
                     b.Property<string>("UserName")

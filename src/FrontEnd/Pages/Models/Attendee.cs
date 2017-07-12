@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
@@ -9,6 +9,9 @@ namespace FrontEnd.Pages.Models
 {
     public class Attendee : ConferenceDTO.Attendee
     {
+        [DisplayName("Username")]
+        public override string UserName { get => base.UserName; set => base.UserName = value; }
+
         [DisplayName("First name")]
         public override string FirstName { get => base.FirstName; set => base.FirstName = value; }
 

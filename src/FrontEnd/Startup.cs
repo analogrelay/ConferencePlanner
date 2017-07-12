@@ -1,12 +1,17 @@
 using System;
 using System.Net.Http;
+using FrontEnd.Authentication;
+using FrontEnd.Filters;
 using FrontEnd.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace FrontEnd
 {
@@ -21,23 +26,35 @@ namespace FrontEnd
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc(options =>
-            {
-                options.Filters.AddService(typeof(RequireLoginFilter));
-            })
-            .AddRazorPagesOptions(options =>
-            {
-                options.AuthorizeFolder("/admin", "Admin");
-            });
+            services
+                .AddMvc(options =>
+                {
+                    options.Filters.AddService<EnsureProfileCompleteFilter>();
+                })
+                .AddRazorPagesOptions(options =>
+                {
+                    options.Conventions.AuthorizeFolder("/admin", "Admin");
+                });
 
-            services.AddTransient<RequireLoginFilter>();
+            services.AddSingleton<EnsureProfileCompleteFilter>();
 
-            services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-            });
+            services.Configure<AzureAdB2COptions>(Configuration.GetSection("Authentication"));
+            services.AddSingleton<IConfigureOptions<OpenIdConnectOptions>, OpenIdConnectOptionsSetup>();
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
+            services
+                .AddAuthentication(options =>
+                {
+                    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                })
+                .AddOpenIdConnect()
+                .AddCookie(options =>
+                {
+                    options.LoginPath = "/Login";
+                    options.AccessDeniedPath = "/Denied";
+                });
 
             services.AddAuthorization(options =>
             {
@@ -47,24 +64,6 @@ namespace FrontEnd
                           .RequireUserName(Configuration["admin"]);
                 });
             });
-
-            services.AddCookieAuthentication(options =>
-            {
-                options.LoginPath = "/Login";
-                options.AccessDeniedPath = "/Denied";
-            });
-
-            var twitterConfig = Configuration.GetSection("twitter");
-            if (twitterConfig["consumerKey"] != null)
-            {
-                services.AddTwitterAuthentication(options => twitterConfig.Bind(options));
-            }
-
-            var googleConfig = Configuration.GetSection("google");
-            if (googleConfig["clientID"] != null)
-            {
-                services.AddGoogleAuthentication(options => googleConfig.Bind(options));
-            }
 
             var httpClient = new HttpClient
             {

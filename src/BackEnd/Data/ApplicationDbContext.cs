@@ -15,12 +15,15 @@ namespace BackEnd.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Attendee>()
-               .HasIndex(a => a.UserName)
-               .IsUnique();
+                .HasIndex(a => a.UserName)
+                .IsUnique();
+            modelBuilder.Entity<Attendee>()
+                .HasIndex(a => a.DirectoryObjectId)
+                .IsUnique();
 
             // Ignore the computed property
             modelBuilder.Entity<Session>()
-                    .Ignore(s => s.Duration);
+                .Ignore(s => s.Duration);
 
             // Many-to-many: Conference <-> Attendee
             modelBuilder.Entity<ConferenceAttendee>()

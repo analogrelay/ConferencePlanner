@@ -1,4 +1,5 @@
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -29,6 +30,9 @@ namespace FrontEnd.Infrastructure
         }
 
         public static Task<HttpResponseMessage> SendJsonAsync<T>(this HttpClient client, HttpMethod method, string url, T value)
+            => SendJsonAsync(client, new HttpRequestMessage(method, url), value);
+
+        public static Task<HttpResponseMessage> SendJsonAsync<T>(this HttpClient client, HttpRequestMessage request, T value)
         {
             var stream = new MemoryStream();
             var jsonWriter = new JsonTextWriter(new StreamWriter(stream));
@@ -39,10 +43,9 @@ namespace FrontEnd.Infrastructure
 
             stream.Position = 0;
 
-            var request = new HttpRequestMessage(method, url)
-            {
-                Content = new StreamContent(stream)
-            };
+            // We're using StreamContent rather than a custom Json Content because we need to pre-compute the Content-Length,
+            // so we need to buffer anyway.
+            request.Content = new StreamContent(stream);
 
             request.Content.Headers.TryAddWithoutValidation("Content-Type", "application/json");
 

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using ConferenceDTO;
 using FrontEnd.Infrastructure;
@@ -17,11 +18,35 @@ namespace FrontEnd.Services
             _httpClient = httpClient;
         }
 
-        public async Task AddAttendeeAsync(Attendee attendee)
+        public async Task<AttendeeResponse> GetMeAsync(string accessToken)
         {
-            var response = await _httpClient.PostJsonAsync($"/api/attendees", attendee);
+            var request = new HttpRequestMessage(HttpMethod.Get, "/api/attendees/@me");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
+            var response = await _httpClient.SendAsync(request);
+
+            if(response.StatusCode == HttpStatusCode.NotFound)
+            {
+                // The user hasn't been registered. Return null in that case
+                return null;
+            }
+            else
+            {
+                // Any other error is unexpected
+                response.EnsureSuccessStatusCode();
+                return await response.Content.ReadAsJsonAsync<AttendeeResponse>();
+            }
+        }
+
+        public async Task<AttendeeResponse> AddAttendeeAsync(Attendee attendee, string accessToken)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, "/api/attendees");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+            var response = await _httpClient.SendJsonAsync(request, attendee);
             response.EnsureSuccessStatusCode();
+
+            return await response.Content.ReadAsJsonAsync<AttendeeResponse>();
         }
 
         public async Task<AttendeeResponse> GetAttendeeAsync(string name)
@@ -124,14 +149,14 @@ namespace FrontEnd.Services
 
         public async Task AddSessionToAttendeeAsync(string name, int sessionId)
         {
-            var response = await _httpClient.PostAsync($"/api/attendees/{name}/session/{sessionId}", null);
+            var response = await _httpClient.PostAsync($"/api/attendees/{name}/sessions/{sessionId}", null);
 
             response.EnsureSuccessStatusCode();
         }
 
         public async Task RemoveSessionFromAttendeeAsync(string name, int sessionId)
         {
-            var response = await _httpClient.DeleteAsync($"/api/attendees/{name}/session/{sessionId}");
+            var response = await _httpClient.DeleteAsync($"/api/attendees/{name}/sessions/{sessionId}");
 
             response.EnsureSuccessStatusCode();
         }
@@ -139,7 +164,6 @@ namespace FrontEnd.Services
         public async Task<List<SessionResponse>> GetSessionsByAttendeeAsync(string name)
         {
             // TODO: Add backend API for this
-
             var sessionsTask = GetSessionsAsync();
             var attendeeTask = GetAttendeeAsync(name);
 
