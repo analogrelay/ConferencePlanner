@@ -1,9 +1,7 @@
 # Dockerfile for the base image on which all ConferencePlanner services run
 # NOTE: Build Context for this should be the parent directory
 
-ARG base_image=microsoft/dotnet-nightly:2.0.0-preview3-runtime-deps
-
-FROM $base_image
+FROM microsoft/dotnet-nightly:2.0.0-preview3-runtime-deps
 
 RUN mkdir /opt/app
 WORKDIR /opt/app
@@ -14,7 +12,8 @@ RUN apt-get update \
 
 # Copy in build scripts and set up dotnet cli
 # Apparently it's not really possible to combine these copies into one layer :(
-COPY ./scripts/_common.sh ./scripts/dotnet-install.sh ./scripts/link-dotnet.sh ./scripts/
+COPY ./scripts/_common.sh ./scripts/
+COPY ./scripts/dotnet-install.sh ./scripts/link-dotnet.sh ./scripts/
 
 COPY ./global.json .
 

@@ -6,6 +6,8 @@ source "$REPOROOT/scripts/_common.sh"
 
 cd $REPOROOT
 
+base_image_tag="base.sdk.${sdk_version}"
+
 docker build \
     --tag $docker_repo:build \
     --file ./docker/build.Dockerfile \
@@ -18,14 +20,21 @@ docker run \
     --volume "$PWD/artifacts:/opt/code/artifacts" \
     $docker_repo:build
 
-base_image_tag="base.sdk.${sdk_version}"
-
 # Get commit hash
 commit_hash=$(git rev-parse HEAD)
-commit_branch=$(git rev-parse --abbrev-ref HEAD)
+
+if [ -z "$BUILD_SOURCEBRANCH" ]; then
+    commit_branch=$(git rev-parse --abbrev-ref HEAD)
+else
+    # VSTS gave us a source branch, but in the form 'refs/heads/...'
+    # We could also get the "last" segment of the branch name in a different variable, but
+    # that means that branches like "anurse/foo" would just become "foo", which we don't want
+    # So we manually parse the full name down here
+    commit_branch=${BUILD_SOURCEBRANCH#refs/heads/}
+fi
 
 # Build each of the output containers
-containers=()
+built_containers=()
 for dockerfile in $(find "$REPOROOT/artifacts/linux" -name Dockerfile); do
     context_dir=$(dirname $dockerfile)
     name=$(basename $context_dir)
@@ -35,18 +44,16 @@ for dockerfile in $(find "$REPOROOT/artifacts/linux" -name Dockerfile); do
     docker build \
         --build-arg BASE_IMAGE_TAG=$base_image_tag \
         --tag $image_hash \
+        --tag $image_branch \
+        --label commit.hash=$commit_hash \
+        --label commit.branch=$commit_branch \
         --file $dockerfile \
         $context_dir
-
-    echo "Applying tag $image_branch"
-    docker tag \
-        $image_hash \
-        $image_branch
 
     containers+=("$image_branch" "$image_hash")
 done
 
-echo "Docker containers built!"
-for container in ${containers[@]}; do
-    echo "* $container"
+echo "Docker containers built:"
+for built_container in ${built_containers[@]}; do
+    echo "* $built_container"
 done
