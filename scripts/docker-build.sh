@@ -14,7 +14,6 @@ docker build \
 [ -d "$PWD/artifacts" ] || mkdir "$PWD/artifacts"
 
 docker run \
-    --tty \
     --interactive \
     --volume "$PWD/artifacts:/opt/code/artifacts" \
     $docker_repo:build
@@ -48,6 +47,6 @@ for dockerfile in $(find "$REPOROOT/artifacts/linux" -name Dockerfile); do
 done
 
 echo "Docker containers built!"
-for container in $containers; do
+for container in ${containers[@]}; do
     echo "* $container"
 done

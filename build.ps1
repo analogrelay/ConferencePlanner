@@ -13,7 +13,7 @@ Write-Host -ForegroundColor Green "Checking .NET CLI"
 $haveCli = !!(Get-Command dotnet -ErrorAction SilentlyContinue)
 if (!$haveCli -or ("$(dotnet --version)" -ne $sdk.version)) {
     # Install that version of the CLI
-    $installScript = Join-Path (Join-Path $PSScriptRoot "build") "dotnet-install.ps1"
+    $installScript = Join-Path (Join-Path $PSScriptRoot "scripts") "dotnet-install.ps1"
     & $installScript -Channel $sdk.channel -Version $sdk.version -InstallDir $dotnetLocalInstallFolder -Architecture $dotnetArch
 
     # Verify we're good now
