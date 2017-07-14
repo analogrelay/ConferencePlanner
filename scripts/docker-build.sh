@@ -48,8 +48,10 @@ for dockerfile in $(find "$REPOROOT/artifacts/linux" -name Dockerfile); do
     image_branch="$docker_repo:service.$name.${commit_branch//\//-}"
     image_hash="$docker_repo:service.$name.$commit_hash"
     echo "Building Docker Image $image_hash"
+
+    # Can't use the below arg because VSTS's docker doesn't support ARG before FROM :(
+    #--build-arg BASE_IMAGE_TAG=$base_image_tag \
     docker build \
-        --build-arg BASE_IMAGE_TAG=$base_image_tag \
         --tag $image_hash \
         --tag $image_branch \
         --label commit.hash=$commit_hash \
