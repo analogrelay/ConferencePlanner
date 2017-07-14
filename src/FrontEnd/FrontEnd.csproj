@@ -7,16 +7,23 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Identity.Client" Version="1.1.0-preview" />
-    <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.0-rtm-*" />
+    <Content Include="Dockerfile" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
+
   <ItemGroup>
-    <DotNetCliToolReference Include="Microsoft.DotNet.Watcher.Tools" Version="2.0.0-rtm-*" />
-    <DotNetCliToolReference Include="Microsoft.Extensions.SecretManager.Tools" Version="2.0.0-rtm-*" />
+    <PackageReference Include="Microsoft.Identity.Client" Version="$(IdentityClientVersion)" />
+    <PackageReference Include="Microsoft.AspNetCore.All" Version="$(AspNetCoreVersion)" />
   </ItemGroup>
+
+  <ItemGroup>
+    <DotNetCliToolReference Include="Microsoft.DotNet.Watcher.Tools" Version="$(AspNetCoreVersion)" />
+    <DotNetCliToolReference Include="Microsoft.Extensions.SecretManager.Tools" Version="$(AspNetCoreVersion)" />
+  </ItemGroup>
+ 
   <ItemGroup>
     <ProjectReference Include="..\ConferenceDTO\ConferenceDTO.csproj" />
   </ItemGroup>
+
   <ItemGroup>
     <Folder Include="Pages\Admin\" />
   </ItemGroup>
