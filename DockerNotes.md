@@ -6,6 +6,18 @@
 docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=<password>" -p 1433:1433 --name sqlserver -d microsoft/mssql-server-linux
 ```
 
+## Migrate the DB
+
+```
+ConnectionStrings__DefaultConnection="Server=localhost;Database=ConferencePlanner;User Id=sa;Password=<password>;MultipleActiveResultSets=true" dotnet ef database update
+```
+
+## Create a SQL Login/User with access to Conference Planner db
+
+User Name: `backend`
+
+Steps TODO :)
+
 ## Running the Back End
 
 ```
