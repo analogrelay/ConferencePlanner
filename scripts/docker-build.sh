@@ -6,7 +6,7 @@ source "$REPOROOT/scripts/_common.sh"
 
 # Just to protect against updating global.json without updating Dockerfiles
 # Because VSTS's docker doesn't support ARG before FROM yet :(
-if [ $sdk_version != "2.0.0-preview3-006701" ]; then
+if [ $sdk_version != "2.0.0-preview3-006845" ]; then
     echo "error: The global.json SDK version has been updated, but the docker-build.sh file, and the Dockerfiles in the project repos may not have been." 1>&2
     exit 1
 fi

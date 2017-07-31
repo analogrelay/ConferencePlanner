@@ -61,7 +61,7 @@ namespace FrontEnd
                 options.AddPolicy("Admin", policy =>
                 {
                     policy.RequireAuthenticatedUser()
-                          .RequireUserName(Configuration["admin"]);
+                          .RequireUserName(Configuration["admin"] ?? "Admin");
                 });
             });
 

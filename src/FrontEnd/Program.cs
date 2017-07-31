@@ -2,6 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 
 namespace FrontEnd
 {
@@ -12,10 +13,18 @@ namespace FrontEnd
             BuildWebHost(args).Run();
         }
 
-        public static IWebHost BuildWebHost(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)
+        public static IWebHost BuildWebHost(string[] args)
+        {
+            var hostConfig = new ConfigurationBuilder()
+                .AddEnvironmentVariables(prefix: "ASPNETCORE_")
+                .AddCommandLine(args)
+                .Build();
+
+            return WebHost.CreateDefaultBuilder(args)
                 .UseUrls("http://localhost:55994")
+                .UseConfiguration(hostConfig)
                 .UseStartup<Startup>()
                 .Build();
+        }
     }
 }

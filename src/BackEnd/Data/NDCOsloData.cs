@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using BackEnd.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BackEnd
@@ -25,11 +27,29 @@ namespace BackEnd
             public SessionData[] Sessions { get; set; }
         }
 
-        public static void Seed(ApplicationDbContext db)
+        public static async Task Recreate(ApplicationDbContext db)
         {
-            db.Database.EnsureDeleted();
-            db.Database.EnsureCreated();
+            await db.Database.EnsureDeletedAsync();
+            await db.Database.EnsureCreatedAsync();
+            await Seed(db);
+        }
 
+        public static async Task Clear(ApplicationDbContext db)
+        {
+            await db.Database.ExecuteSqlCommandAsync("DELETE FROM ConferenceAttendee");
+            await db.Database.ExecuteSqlCommandAsync("DELETE FROM SessionAttendee");
+            await db.Database.ExecuteSqlCommandAsync("DELETE FROM SessionSpeaker");
+            await db.Database.ExecuteSqlCommandAsync("DELETE FROM SessionTag");
+            await db.Database.ExecuteSqlCommandAsync("DELETE FROM Speakers");
+            await db.Database.ExecuteSqlCommandAsync("DELETE FROM Sessions");
+            await db.Database.ExecuteSqlCommandAsync("DELETE FROM Tags");
+            await db.Database.ExecuteSqlCommandAsync("DELETE FROM Attendees");
+            await db.Database.ExecuteSqlCommandAsync("DELETE FROM Tracks");
+            await db.Database.ExecuteSqlCommandAsync("DELETE FROM Conferences");
+        }
+
+        public static Task Seed(ApplicationDbContext db)
+        {
             // Conference
             var conference = new Conference { Name = "NDC Oslo 2017" };
             db.Conferences.Add(conference);
@@ -690,7 +710,7 @@ After feature freeze in June 2016, currently the final details are specified. Th
                 AddSessions(group);
             }
 
-            db.SaveChanges();
+            return db.SaveChangesAsync();
         }
     }
 }

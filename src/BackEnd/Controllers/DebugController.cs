@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using BackEnd.Data;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -20,17 +21,33 @@ namespace BackEnd.Controllers
 
         [HttpPost]
         [Route("db/reset")]
-        public IActionResult ResetDatabase()
+        public async Task<IActionResult> ResetDatabase()
         {
-            if(_hostingEnvironment.IsDevelopment())
+            if (_hostingEnvironment.IsDevelopment())
             {
-                NDCOsloData.Seed(_applicationDbContext);
+                await NDCOsloData.Recreate(_applicationDbContext);
                 return Accepted();
             }
             else
             {
                 return Forbid();
             }
-        } 
+        }
+
+        [HttpPost]
+        [Route("db/seed")]
+        public async Task<IActionResult> SeedDatabase()
+        {
+            if (_hostingEnvironment.IsDevelopment())
+            {
+                await NDCOsloData.Clear(_applicationDbContext);
+                await NDCOsloData.Seed(_applicationDbContext);
+                return Accepted();
+            }
+            else
+            {
+                return Forbid();
+            }
+        }
     }
 }

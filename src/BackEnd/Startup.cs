@@ -25,14 +25,7 @@ namespace BackEnd
         {
             services.AddDbContext<ApplicationDbContext>(options =>
             {
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
-                }
-                else
-                {
-                    options.UseSqlite("Data Source=conferences.db");
-                }
+                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
             });
 
             services
@@ -65,6 +58,7 @@ namespace BackEnd
             services.AddSwaggerGen(options =>
             {
                 options.SwaggerDoc("v1", new Info { Title = "Conference Planner API", Version = "v1" });
+                options.CustomSchemaIds(t => t.FullName);
             });
         }
 
