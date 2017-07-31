@@ -11,4 +11,5 @@ has() {
 
 # Determine the cli version
 sdk_version=$(cat "$DIR/../global.json" | grep "\"version\":" | sed 's/^ *"version": "\([^"]*\)",*/\1/')
-docker_repo=anurse/conferenceplanner
+docker_repo=anurseconferenceplanner.azurecr.io
+base_docker_repo=anurse/conferenceplanner-base

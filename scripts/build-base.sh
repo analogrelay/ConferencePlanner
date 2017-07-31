@@ -18,10 +18,10 @@ cd $REPOROOT
 
 docker build \
     --file ./docker/base.Dockerfile \
-    --tag "$docker_repo:base.sdk.$sdk_version" \
+    --tag "$base_docker_repo:sdk.$sdk_version" \
     --build-arg dotnet_sdk_version=$sdk_version \
     .
 
-if [ $push = 1 ]; then
-    docker push "$docker_repo:base.sdk.$sdk_version"
+if [ $push = "1" ]; then
+    docker push "$base_docker_repo:sdk.$sdk_version"
 fi

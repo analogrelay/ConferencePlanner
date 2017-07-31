@@ -13,10 +13,10 @@ fi
 
 cd $REPOROOT
 
-base_image_tag="base.sdk.${sdk_version}"
+base_image_tag="base:sdk.${sdk_version}"
 
 docker build \
-    --tag $docker_repo:build \
+    --tag "$docker_repo/build" \
     --file ./docker/build.Dockerfile \
     .
 
@@ -25,7 +25,7 @@ docker build \
 docker run \
     --interactive \
     --volume "$PWD/artifacts:/opt/code/artifacts" \
-    $docker_repo:build
+    $docker_repo/build
 
 # Get commit hash
 commit_hash=$(git rev-parse HEAD)
@@ -44,9 +44,9 @@ fi
 built_containers=()
 for dockerfile in $(find "$REPOROOT/artifacts/linux" -name Dockerfile); do
     context_dir=$(dirname $dockerfile)
-    name=$(basename $context_dir)
-    image_branch="$docker_repo:service.$name.${commit_branch//\//-}"
-    image_hash="$docker_repo:service.$name.$commit_hash"
+    name=$(basename $context_dir | awk '{print tolower($0)}')
+    image_branch="$docker_repo/$name:${commit_branch//\//-}"
+    image_hash="$docker_repo/$name:$commit_hash"
     echo "Building Docker Image $image_hash"
 
     # Can't use the below arg because VSTS's docker doesn't support ARG before FROM :(
@@ -59,7 +59,7 @@ for dockerfile in $(find "$REPOROOT/artifacts/linux" -name Dockerfile); do
         --file $dockerfile \
         $context_dir
 
-    containers+=("$image_hash")
+    built_containers+=("$image_hash")
 done
 
 echo "Docker containers built:"
