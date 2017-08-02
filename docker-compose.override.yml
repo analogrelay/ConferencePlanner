@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+  sqlserver:
+    image: microsoft/mssql-server-linux
+    expose:
+        - "1433"
+    ports:
+        - "5133:1433"
+    environment:
+      ACCEPT_EULA: 'Y'
+      SA_PASSWORD: 'dev-only-do-not-use-7cf4fb11d8644ccb9d0e06acd6e0392b'
+    networks:
+      - backend
+
+  backend:
+    environment:
+      ASPNETCORE_ENVIRONMENT: 'Development'
+      ConnectionStrings__DefaultConnection: 'Data Source=sqlserver;Initial Catalog=ConferencePlanner;Persist Security Info=False;User ID=sa;Password=dev-only-do-not-use-7cf4fb11d8644ccb9d0e06acd6e0392b;Pooling=False;MultipleActiveResultSets=False;Encrypt=False;TrustServerCertificate=True'
+    ports:
+      - "5100:80"
+
+  frontend:
+    environment:
+      ASPNETCORE_ENVIRONMENT: 'Development'
+    ports:
+      - "5101:80"

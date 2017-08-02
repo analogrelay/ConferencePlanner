@@ -1,0 +1,36 @@
+version: '3'
+
+services:
+  backend:
+    image: anurseconferenceplanner.azurecr.io/backend
+    environment:
+        ConnectionStrings__DefaultConnection: '${ConferencePlanner_SqlConnectionString}'
+        Authentication__ClientId: '${ConferencePlanner_BackEnd_AzureAdClientId}'
+        Authentication__Tenant: '${ConferencePlanner_AzureAdTenant}'
+    expose:
+        - "80"
+    build:
+      context: ./src/BackEnd
+      dockerfile: Dockerfile
+    networks:
+      - backend
+      - frontend
+
+  frontend:
+    image: anurseconferenceplanner.azurecr.io/frontend
+    expose:
+        - "80"
+    environment:
+        ServiceUrl: 'http://backend'
+        Authentication__ClientId: '${ConferencePlanner_FrontEnd_AzureAdClientId}'
+        Authentication__ClientSecret: '${ConferencePlanner_FrontEnd_AzureAdClientSecret}'
+        Authentication__Tenant: '${ConferencePlanner_AzureAdTenant}'
+    build:
+      context: ./src/FrontEnd
+      dockerfile: Dockerfile
+    networks:
+      - frontend
+
+networks:
+    frontend:
+    backend:
