@@ -1,13 +1,18 @@
-version: '3'
+version: '3.3'
 
 services:
   backend:
     environment:
-      - "ConnectionStrings__DefaultConnection=${ConferencePlanner_SqlConnectionString}"
       - ASPNETCORE_ENVIRONMENT
+      - Authentication__Tenant
+      - Authentication__ClientId
+      - ConnectionStrings__DefaultConnection
 
   frontend:
     environment:
       - ASPNETCORE_ENVIRONMENT
+      - Authentication__Tenant
+      - Authentication__ClientId
+      - Authentication__ClientSecret
     ports:
       - "80:80"

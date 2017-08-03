@@ -2,11 +2,13 @@
 # So this will need to be manually updated when the SDK version is updated
 FROM anurse/conferenceplanner-base:sdk.2.0.0-preview3-006845
 
+ARG source=./obj/Docker/publish
+
 EXPOSE 80 
 ENV ASPNETCORE_URLS http://0.0.0.0:80
 
 WORKDIR /opt/app
 
-COPY ${source:-./obj/Docker/publish} ./
+COPY ${source} ./
 
 ENTRYPOINT [ "/opt/dotnet/dotnet", "/opt/app/FrontEnd.dll" ]
