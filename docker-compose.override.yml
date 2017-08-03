@@ -18,10 +18,10 @@ services:
       ASPNETCORE_ENVIRONMENT: 'Development'
       ConnectionStrings__DefaultConnection: 'Data Source=sqlserver;Initial Catalog=ConferencePlanner;Persist Security Info=False;User ID=sa;Password=dev-only-do-not-use-7cf4fb11d8644ccb9d0e06acd6e0392b;Pooling=False;MultipleActiveResultSets=False;Encrypt=False;TrustServerCertificate=True'
     ports:
-      - "5100:80"
+      - "5101:80"
 
   frontend:
     environment:
       ASPNETCORE_ENVIRONMENT: 'Development'
     ports:
-      - "5101:80"
+      - "5100:80"

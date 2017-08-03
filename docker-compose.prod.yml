@@ -3,6 +3,7 @@ version: '3'
 services:
   backend:
     environment:
+      - "ConnectionStrings__DefaultConnection=${ConferencePlanner_SqlConnectionString}"
       - ASPNETCORE_ENVIRONMENT
 
   frontend:

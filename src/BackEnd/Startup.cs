@@ -26,6 +26,11 @@ namespace BackEnd
 
         public void ConfigureServices(IServiceCollection services)
         {
+            // Configuration Required from the environment:
+            // * Authentication:Tenant
+            // * Authentication:ClientId
+            // * ConnectionStrings:DefaultConnectionString
+
             services.AddDbContext<ApplicationDbContext>(options =>
             {
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));

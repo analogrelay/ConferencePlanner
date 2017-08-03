@@ -4,7 +4,6 @@ services:
   backend:
     image: anurseconferenceplanner.azurecr.io/backend
     environment:
-        ConnectionStrings__DefaultConnection: '${ConferencePlanner_SqlConnectionString}'
         Authentication__ClientId: '${ConferencePlanner_BackEnd_AzureAdClientId}'
         Authentication__Tenant: '${ConferencePlanner_AzureAdTenant}'
     expose:

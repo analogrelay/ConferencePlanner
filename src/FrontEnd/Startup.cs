@@ -27,6 +27,12 @@ namespace FrontEnd
 
         public void ConfigureServices(IServiceCollection services)
         {
+            // Configuration Required from the environment:
+            // * ServiceUrl
+            // * Authentication:Tenant
+            // * Authentication:ClientId
+            // * Authentication:ClientSecret
+
             services
                 .AddMvc(options =>
                 {
