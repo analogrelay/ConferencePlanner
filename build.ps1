@@ -23,24 +23,14 @@ if (!$haveCli -or ("$(dotnet --version)" -ne $sdk.version)) {
     }
 }
 
-$env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE="true"
+$env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = "true"
 
 # Restore!
 Write-Host -ForegroundColor Green "Restoring Packages"
-dotnet restore
+dotnet restore "$PSScriptRoot\ConferencePlanner.sln"
 
 # Build!
 Write-Host -ForegroundColor Green "Building"
-dotnet build
-
-# Publish apps
-$ArtifactsRoot = Join-Path $PSScriptRoot "artifacts"
-$ArtifactsPath = Join-Path $ArtifactsRoot "windows"
-@("FrontEnd", "BackEnd") | ForEach-Object {
-    $Project = Join-Path (Join-Path (Join-Path $PSScriptRoot "src") $_) "$_.csproj"
-    $Output = Join-Path $ArtifactsPath $_
-    Write-Host -ForegroundColor Green "Publishing $_"
-    dotnet publish $Project -o $Output
-}
+dotnet build "$PSScriptRoot\ConferencePlanner.sln"
 
 Write-Host -ForegroundColor Green "Build Succeeded"
