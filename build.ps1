@@ -29,8 +29,8 @@ $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = "true"
 Write-Host -ForegroundColor Green "Restoring Packages"
 dotnet restore "$PSScriptRoot\ConferencePlanner.sln"
 
-# Build!
+# Build and publish!
 Write-Host -ForegroundColor Green "Building"
-dotnet build "$PSScriptRoot\ConferencePlanner.sln"
+dotnet publish "$PSScriptRoot\ConferencePlanner.sln"
 
 Write-Host -ForegroundColor Green "Build Succeeded"
