@@ -20,6 +20,8 @@ if ! has dotnet || [ "$(dotnet --version)" != "$sdk_version" ]; then
     "$REPOROOT/scripts/dotnet-install.sh" --version $sdk_version --runtime-id linux-x64
 fi
 
+export PATH="$HOME/.dotnet:$PATH"
+
 echo "Restoring Packages"
 dotnet restore "ConferencePlanner.sln"
 
