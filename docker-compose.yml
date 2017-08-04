@@ -1,27 +1,10 @@
 version: '3.3'
 
 services:
-  sqlserver:
-    image: microsoft/mssql-server-linux
-    expose:
-        - "1433"
-    ports:
-        - "5133:1433"
-    environment:
-      ACCEPT_EULA: 'Y'
-      SA_PASSWORD: 'dev-only-do-not-use-7cf4fb11d8644ccb9d0e06acd6e0392b'
-    networks:
-      - backend
-
   backend:
     image: anurseconferenceplanner.azurecr.io/backend
     expose:
       - "80"
-    environment:
-      Authentication__ClientId: '${ConferencePlanner_BackEnd_AzureAdClientId}'
-      Authentication__Tenant: '${ConferencePlanner_AzureAdTenant}'
-      ASPNETCORE_ENVIRONMENT: 'Development'
-      ConnectionStrings__DefaultConnection: 'Data Source=sqlserver;Initial Catalog=ConferencePlanner;Persist Security Info=False;User ID=sa;Password=dev-only-do-not-use-7cf4fb11d8644ccb9d0e06acd6e0392b;Pooling=False;MultipleActiveResultSets=False;Encrypt=False;TrustServerCertificate=True'
     build:
       context: ./src/BackEnd
       dockerfile: Dockerfile
@@ -30,8 +13,6 @@ services:
     networks:
       - backend
       - frontend
-    ports:
-      - "5101:80"
 
   frontend:
     image: anurseconferenceplanner.azurecr.io/frontend
@@ -39,10 +20,6 @@ services:
       - "80"
     environment:
       ServiceUrl: 'http://backend'
-      ASPNETCORE_ENVIRONMENT: 'Development'
-      Authentication__ClientId: '${ConferencePlanner_FrontEnd_AzureAdClientId}'
-      Authentication__ClientSecret: '${ConferencePlanner_FrontEnd_AzureAdClientSecret}'
-      Authentication__Tenant: '${ConferencePlanner_AzureAdTenant}'
     build:
       context: ./src/FrontEnd
       dockerfile: Dockerfile
@@ -50,8 +27,6 @@ services:
         source: './bin/${CONFIGURATION:-Debug}/netcoreapp2.0/publish'
     networks:
       - frontend
-    ports:
-      - "5100:80"
 
 networks:
     frontend:
