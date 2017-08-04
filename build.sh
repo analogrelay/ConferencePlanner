@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 REPOROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-[ -z "$CONFIGURATION" ] && CONFIGURATION="Debug"
+[ -z "$BuildConfiguration" ] && BuildConfiguration="Debug"
 
 export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
 
 source "$REPOROOT/scripts/_common.sh"
 
 cd "$REPOROOT"
+
+echo "Running $BuildConfiguration Build..."
 
 echo "Verifying dotnet CLI version"
 if ! has dotnet || [ "$(dotnet --version)" != "$sdk_version" ]; then
@@ -22,6 +24,6 @@ echo "Restoring Packages"
 dotnet restore "ConferencePlanner.sln"
 
 echo "Building"
-dotnet publish "ConferencePlanner.sln" --configuration $CONFIGURATION
+dotnet publish "ConferencePlanner.sln" --configuration $BuildConfiguration
 
 echo "Build succeeded"

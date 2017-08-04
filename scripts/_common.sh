@@ -10,11 +10,15 @@ has() {
 }
 
 die() {
-    echo $1
+    echo $1 1>&2
     exit 1
 }
 
+if [ -z "$REPOROOT" ]; then
+    die "REPOROOT must be set before sourcing _common.sh"
+fi
+
 # Determine the cli version
-sdk_version=$(cat "$DIR/../global.json" | grep "\"version\":" | sed 's/^ *"version": "\([^"]*\)",*/\1/')
+sdk_version=$(cat "$REPOROOT/global.json" | grep "\"version\":" | sed 's/^ *"version": "\([^"]*\)",*/\1/')
 docker_repo=anurseconferenceplanner.azurecr.io
 base_docker_repo=anurse/conferenceplanner-base
