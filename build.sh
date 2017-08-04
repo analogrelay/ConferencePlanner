@@ -2,6 +2,10 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 REPOROOT="$( cd "$DIR/.." && pwd )"
 
+[ -z "$CONFIGURATION" ] && CONFIGURATION="Debug"
+
+export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
+
 source "$REPOROOT/scripts/_common.sh"
 
 cd "$REPOROOT"
@@ -12,7 +16,7 @@ if ! has dotnet || [ "$(dotnet --version)" != "$sdk_version" ]; then
     echo "Installing dotnet CLI $sdk_version ..."
 
     # Because we only have an SDK version to pivot on, we have to get the whole SDK even if only the runtime was requested
-    "$DIR/dotnet-install.sh" --version $sdk_version --install-dir $DOTNET_INSTALL_DIR --runtime-id linux-x64
+    "$REPOROOT/scripts/dotnet-install.sh" --version $sdk_version --install-dir $DOTNET_INSTALL_DIR --runtime-id linux-x64
 fi
 
 echo "Restoring Packages"
