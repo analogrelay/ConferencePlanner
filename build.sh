@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-REPOROOT="$( cd "$DIR/.." && pwd )"
+REPOROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 [ -z "$CONFIGURATION" ] && CONFIGURATION="Debug"
 
@@ -23,6 +22,6 @@ echo "Restoring Packages"
 dotnet restore "ConferencePlanner.sln"
 
 echo "Building"
-dotnet publish "ConferencePlanner.sln"
+dotnet publish "ConferencePlanner.sln" --configuration $CONFIGURATION
 
 echo "Build succeeded"
