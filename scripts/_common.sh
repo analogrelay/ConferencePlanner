@@ -9,6 +9,11 @@ has() {
     type -p $CMD >/dev/null 2>/dev/null
 }
 
+die() {
+    echo $1
+    exit 1
+}
+
 # Determine the cli version
 sdk_version=$(cat "$DIR/../global.json" | grep "\"version\":" | sed 's/^ *"version": "\([^"]*\)",*/\1/')
 docker_repo=anurseconferenceplanner.azurecr.io
