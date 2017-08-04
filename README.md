@@ -1,5 +1,7 @@
 # ASP.NET Core - App Building Workshop
 
+Dummy Change
+
 ## Setup
 
 ### .NET Core SDK 2.0 Preview 1 build 005977
