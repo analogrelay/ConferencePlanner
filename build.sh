@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 REPOROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-[ ! -z "$BuildConfiguration" ] || BuildConfiguration="Debug"
+[ ! -z "$BUILDCONFIGURATION" ] || BUILDCONFIGURATION="Debug"
 
 export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
 
