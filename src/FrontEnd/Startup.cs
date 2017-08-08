@@ -14,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using System.Collections.Generic;
 using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.Extensions.Logging;
 
 namespace FrontEnd
 {
@@ -81,8 +82,9 @@ namespace FrontEnd
             services.AddSingleton<IApiClient, ApiClient>();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, TelemetryConfiguration telemetryConfiguration)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, TelemetryConfiguration telemetryConfiguration, ILoggerFactory loggerFactory)
         {
+            loggerFactory.AddApplicationInsights(app.ApplicationServices);
             telemetryConfiguration.TelemetryInitializers.Add(new ServiceNameTelemetryInitializer("Frontend"));
 
             if (env.IsDevelopment())
