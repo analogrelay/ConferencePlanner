@@ -13,6 +13,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using System.Collections.Generic;
+using Microsoft.ApplicationInsights.Extensibility;
 
 namespace FrontEnd
 {
@@ -80,8 +81,10 @@ namespace FrontEnd
             services.AddSingleton<IApiClient, ApiClient>();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, TelemetryConfiguration telemetryConfiguration)
         {
+            telemetryConfiguration.TelemetryInitializers.Add(new ServiceNameTelemetryInitializer("Frontend"));
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

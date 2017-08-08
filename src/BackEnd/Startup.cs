@@ -12,6 +12,7 @@ using Swashbuckle.AspNetCore.Swagger;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ApplicationInsights.Extensibility;
 
 namespace BackEnd
 {
@@ -70,8 +71,10 @@ namespace BackEnd
             });
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, TelemetryConfiguration telemetryConfiguration)
         {
+            telemetryConfiguration.TelemetryInitializers.Add(new ServiceNameTelemetryInitializer("Backend"));
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
