@@ -12,6 +12,9 @@ services:
       - source: backend.connectionstrings.defaultconnection
         target: ConnectionStrings__DefaultConnection
         mode: 0444
+      - source: applicationinsights.instrumentationkey
+        target: ApplicationInsights__InstrumentationKey
+        mode: 0444
 
   frontend:
     ports:
@@ -29,6 +32,9 @@ services:
       - source: frontend.authentication.clientsecret
         target: Authentication__ClientSecret
         mode: 0444
+      - source: applicationinsights.instrumentationkey
+        target: ApplicationInsights__InstrumentationKey
+        mode: 0444
 
 secrets:
   authentication.tenant:
@@ -40,4 +46,6 @@ secrets:
   frontend.authentication.clientid:
     external: true
   frontend.authentication.clientsecret:
+    external: true
+  applicationinsights.instrumentationkey:
     external: true

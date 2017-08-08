@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.All" Version="$(AspNetCoreVersion)" />
     <PackageReference Include="Microsoft.Extensions.Configuration.DockerSecrets" Version="$(AspNetCoreVersion)" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="$(SwashbuckleVersion)" />
@@ -21,6 +22,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ConferenceDTO\ConferenceDTO.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <WCFMetadata Include="Connected Services" />
   </ItemGroup>
 
   <ProjectExtensions><VisualStudio><UserProperties appsettings_1Development_1json__JSONSchema="k" /></VisualStudio></ProjectExtensions>
