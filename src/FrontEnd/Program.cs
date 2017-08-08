@@ -25,7 +25,7 @@ namespace FrontEnd
             if(!string.IsNullOrEmpty(instrumentationKey))
             {
                 Console.WriteLine("Using Application Insights");
-                hostBuilder.UseApplicationInsights(instrumentationKey);
+                hostBuilder.UseApplicationInsights(instrumentationKey.Trim());
             }
 
             return hostBuilder.UseUrls("http://localhost:55994")
