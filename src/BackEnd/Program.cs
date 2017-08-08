@@ -21,6 +21,10 @@ namespace BackEnd
             return WebHost.CreateDefaultBuilder(args)
                 .UseUrls("http://localhost:56009")
                 .UseConfiguration(hostConfig)
+                .ConfigureAppConfiguration(configurationBuilder =>
+                {
+                    configurationBuilder.AddDockerSecrets();
+                })
                 .UseStartup<Startup>()
                 .Build();
         }

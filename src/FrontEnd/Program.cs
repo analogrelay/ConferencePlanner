@@ -1,5 +1,3 @@
-using System;
-using System.Runtime.InteropServices;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -23,6 +21,10 @@ namespace FrontEnd
             return WebHost.CreateDefaultBuilder(args)
                 .UseUrls("http://localhost:55994")
                 .UseConfiguration(hostConfig)
+                .ConfigureAppConfiguration(configurationBuilder =>
+                {
+                    configurationBuilder.AddDockerSecrets();
+                })
                 .UseStartup<Startup>()
                 .Build();
         }

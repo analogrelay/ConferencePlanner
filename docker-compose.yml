@@ -9,7 +9,7 @@ services:
       context: ./src/BackEnd
       dockerfile: Dockerfile
       args:
-        source: './bin/${CONFIGURATION:-Debug}/netcoreapp2.0/publish'
+        source: './bin/${BuildConfiguration:-Debug}/netcoreapp2.0/publish'
     networks:
       - backend
       - frontend
@@ -24,7 +24,7 @@ services:
       context: ./src/FrontEnd
       dockerfile: Dockerfile
       args:
-        source: './bin/${CONFIGURATION:-Debug}/netcoreapp2.0/publish'
+        source: './bin/${BuildConfiguration:-Debug}/netcoreapp2.0/publish'
     networks:
       - frontend
 

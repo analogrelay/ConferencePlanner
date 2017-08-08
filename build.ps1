@@ -2,6 +2,10 @@
 $globalJsonPath = Join-Path $PSScriptRoot global.json
 $sdk = Get-Content $globalJsonPath | ConvertFrom-Json | Select-Object -ExpandProperty sdk
 
+if (!$env:BuildConfiguration) {
+    $env:BuildConfiguration = "Debug"
+}
+
 $dotnetArch = 'x64'
 $dotnetLocalInstallFolder = $env:DOTNET_INSTALL_DIR
 if (!$dotnetLocalInstallFolder) {
@@ -31,6 +35,6 @@ dotnet restore "$PSScriptRoot\ConferencePlanner.sln"
 
 # Build and publish!
 Write-Host -ForegroundColor Green "Building"
-dotnet publish "$PSScriptRoot\ConferencePlanner.sln"
+dotnet publish "$PSScriptRoot\ConferencePlanner.sln" --configuration $env:BuildConfiguration
 
 Write-Host -ForegroundColor Green "Build Succeeded"

@@ -1,0 +1,43 @@
+version: '3.3'
+
+services:
+  backend:
+    secrets:
+      - source: authentication.tenant
+        target: Authentication__Tenant
+        mode: 0444
+      - source: backend.authentication.clientid
+        target: Authentication__ClientId
+        mode: 0444
+      - source: backend.connectionstrings.defaultconnection
+        target: ConnectionStrings__DefaultConnection
+        mode: 0444
+
+  frontend:
+    ports:
+      - target: 80
+        published: 80
+        protocol: tcp
+        mode: ingress
+    secrets:
+      - source: authentication.tenant
+        target: Authentication__Tenant
+        mode: 0444
+      - source: frontend.authentication.clientid
+        target: Authentication__ClientId
+        mode: 0444
+      - source: frontend.authentication.clientsecret
+        target: Authentication__ClientSecret
+        mode: 0444
+
+secrets:
+  authentication.tenant:
+    external: true
+  backend.authentication.clientid:
+    external: true
+  backend.connectionstrings.defaultconnection:
+    external: true
+  frontend.authentication.clientid:
+    external: true
+  frontend.authentication.clientsecret:
+    external: true
