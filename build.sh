@@ -9,7 +9,7 @@ source "$REPOROOT/scripts/_common.sh"
 
 cd "$REPOROOT"
 
-echo "Running $BuildConfiguration Build..."
+echo "Running $BUILDCONFIGURATION Build..."
 
 echo "Verifying dotnet CLI version"
 if ! has dotnet || [ "$(dotnet --version)" != "$sdk_version" ]; then
@@ -26,6 +26,6 @@ echo "Restoring Packages"
 dotnet restore "ConferencePlanner.sln"
 
 echo "Building"
-dotnet publish "ConferencePlanner.sln" --configuration $BuildConfiguration
+dotnet publish "ConferencePlanner.sln" --configuration $BUILDCONFIGURATION
 
 echo "Build succeeded"
