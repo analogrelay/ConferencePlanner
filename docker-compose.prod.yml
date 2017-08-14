@@ -2,6 +2,8 @@ version: '3.3'
 
 services:
   backend:
+    deploy:
+      replicas: 3
     secrets:
       - source: authentication.tenant
         target: Authentication__Tenant
@@ -17,11 +19,14 @@ services:
         mode: 0444
 
   frontend:
-    ports:
-      - target: 80
-        published: 80
-        protocol: tcp
-        mode: ingress
+    deploy:
+      replicas: 3
+      labels:
+        # These register the service with the dockerflow proxy
+        - com.df.notify=true
+        - com.df.distribute=true
+        - com.df.servicePath=/
+        - com.df.port=80
     secrets:
       - source: authentication.tenant
         target: Authentication__Tenant
@@ -35,6 +40,8 @@ services:
       - source: applicationinsights.instrumentationkey
         target: ApplicationInsights__InstrumentationKey
         mode: 0444
+    networks:
+      - proxy
 
 secrets:
   authentication.tenant:
@@ -48,4 +55,8 @@ secrets:
   frontend.authentication.clientsecret:
     external: true
   applicationinsights.instrumentationkey:
+    external: true
+
+networks:
+  proxy:
     external: true

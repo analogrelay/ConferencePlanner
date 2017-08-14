@@ -13,6 +13,7 @@
       <DependentUpon>docker-compose.yml</DependentUpon>
     </None>
     <None Include="docker-compose.prod.yml" />
+    <None Include="docker-compose.proxy.yml" />
     <None Include="docker-compose.yml" />
   </ItemGroup>
 </Project>
