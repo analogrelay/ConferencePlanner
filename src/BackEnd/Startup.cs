@@ -1,21 +1,22 @@
-using System.Runtime.InteropServices;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using BackEnd.Data;
+using InfluxDB.Collector;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DataContracts;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Swashbuckle.AspNetCore.Swagger;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Logging;
-using InfluxDB.Collector;
-using Microsoft.AspNetCore.Http;
+using Swashbuckle.AspNetCore.Swagger;
 
 namespace BackEnd
 {
@@ -48,6 +49,7 @@ namespace BackEnd
                     .CreateCollector();
 
                 services.AddSingleton(collector);
+                services.AddSingleton<MetricCollectorEventListener>();
             }
             else
             {
@@ -100,15 +102,27 @@ namespace BackEnd
             loggerFactory.AddApplicationInsights(app.ApplicationServices);
             telemetryConfiguration.TelemetryInitializers.Add(new ServiceNameTelemetryInitializer("Backend"));
 
-            app.Use((context, next) =>
+            var listener = app.ApplicationServices.GetService<MetricCollectorEventListener>();
+            if (listener != null)
+            {
+                listener.EnableEvents(Microsoft.AspNetCore.Hosting.Internal.HostingEventSource.Log, System.Diagnostics.Tracing.EventLevel.LogAlways, System.Diagnostics.Tracing.EventKeywords.All);
+                listener.EnableEvents(RequestCounterEventSource.Log, System.Diagnostics.Tracing.EventLevel.LogAlways, System.Diagnostics.Tracing.EventKeywords.All, new Dictionary<string, string>()
+                {
+                    { "EventCounterIntervalSec", "1" }
+                });
+            }
+
+            app.Use(async (context, next) =>
             {
                 var collector = context.RequestServices.GetService<MetricsCollector>();
-                if (collector != null)
-                {
-                    CollectMetrics(context, collector);
-                }
+                var telemetryClient = context.RequestServices.GetService<TelemetryClient>();
+                Console.WriteLine("Recording metrics for request");
+                CollectMetrics(context, collector, telemetryClient);
 
-                return next();
+                var stopwatch = Stopwatch.StartNew();
+                await next();
+                stopwatch.Stop();
+                RequestCounterEventSource.Log.Request(context.Request.Path, stopwatch.ElapsedMilliseconds);
             });
 
             if (env.IsDevelopment())
@@ -134,14 +148,24 @@ namespace BackEnd
             });
         }
 
-        private void CollectMetrics(HttpContext context, MetricsCollector collector)
+        private void CollectMetrics(HttpContext context, MetricsCollector collector, TelemetryClient telemetryClient)
         {
-            collector.Increment("requests", tags: new Dictionary<string, string>()
+            if (telemetryClient != null)
             {
-                {"path", context.Request.Path},
-                {"client_ip", context.Connection.RemoteIpAddress.ToString() },
-                {"user_agent", context.Request.Headers["User-Agent"].ToString() }
-            });
+                Console.WriteLine("Logging to AppInsights");
+                telemetryClient.TrackMetric(new MetricTelemetry("request", 1));
+            }
+
+            if (collector != null)
+            {
+                Console.WriteLine("Logging to InfluxDb");
+                collector.Increment("requests", tags: new Dictionary<string, string>()
+                {
+                    {"path", context.Request.Path},
+                    {"client_ip", context.Connection.RemoteIpAddress.ToString() },
+                    {"user_agent", context.Request.Headers["User-Agent"].ToString() }
+                });
+            }
         }
     }
 }

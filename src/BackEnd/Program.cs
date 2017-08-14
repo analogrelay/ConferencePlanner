@@ -2,6 +2,7 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using System;
+using System.Diagnostics.Tracing;
 
 namespace BackEnd
 {
@@ -22,7 +23,7 @@ namespace BackEnd
 
             var hostBuilder = WebHost.CreateDefaultBuilder(args);
             var instrumentationKey = hostConfig["ApplicationInsights:InstrumentationKey"];
-            if(!string.IsNullOrEmpty(instrumentationKey))
+            if (!string.IsNullOrEmpty(instrumentationKey))
             {
                 Console.WriteLine("Using Application Insights");
                 hostBuilder.UseApplicationInsights(instrumentationKey.Trim());
