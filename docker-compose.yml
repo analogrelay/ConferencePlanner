@@ -27,6 +27,7 @@ services:
         source: './bin/${BUILDCONFIGURATION:-Debug}/netcoreapp2.0/publish'
     networks:
       - frontend
+      - diagnostics
 
 networks:
     frontend:

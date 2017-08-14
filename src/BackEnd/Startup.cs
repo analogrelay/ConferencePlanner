@@ -14,6 +14,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Logging;
+using InfluxDB.Collector;
+using Microsoft.AspNetCore.Http;
 
 namespace BackEnd
 {
@@ -32,6 +34,27 @@ namespace BackEnd
             // * Authentication:Tenant
             // * Authentication:ClientId
             // * ConnectionStrings:DefaultConnectionString
+
+            var influxAddress = Configuration["Metrics:InfluxDb:Url"];
+            var influxDb = Configuration["Metrics:InfluxDb:Database"];
+            if (!string.IsNullOrEmpty(influxAddress) && !string.IsNullOrEmpty(influxDb))
+            {
+                Console.WriteLine($"Using influxdb metrics collection: {influxDb}");
+                var collector = new CollectorConfiguration()
+                    .Tag.With("host", Environment.GetEnvironmentVariable("HOSTNAME"))
+                    .Tag.With("conferenceplanner.app", "backend")
+                    .Batch.AtInterval(TimeSpan.FromSeconds(2))
+                    .WriteTo.InfluxDB(influxAddress, influxDb)
+                    .CreateCollector();
+
+                services.AddSingleton(collector);
+            }
+            else
+            {
+                var collector = new CollectorConfiguration()
+                    .CreateCollector();
+                services.AddSingleton(collector);
+            }
 
             services.AddDbContext<ApplicationDbContext>(options =>
             {
@@ -77,6 +100,17 @@ namespace BackEnd
             loggerFactory.AddApplicationInsights(app.ApplicationServices);
             telemetryConfiguration.TelemetryInitializers.Add(new ServiceNameTelemetryInitializer("Backend"));
 
+            app.Use((context, next) =>
+            {
+                var collector = context.RequestServices.GetService<MetricsCollector>();
+                if (collector != null)
+                {
+                    CollectMetrics(context, collector);
+                }
+
+                return next();
+            });
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -97,6 +131,16 @@ namespace BackEnd
             {
                 context.Response.Redirect("/swagger");
                 return Task.CompletedTask;
+            });
+        }
+
+        private void CollectMetrics(HttpContext context, MetricsCollector collector)
+        {
+            collector.Increment("requests", tags: new Dictionary<string, string>()
+            {
+                {"path", context.Request.Path},
+                {"client_ip", context.Connection.RemoteIpAddress.ToString() },
+                {"user_agent", context.Request.Headers["User-Agent"].ToString() }
             });
         }
     }
