@@ -119,15 +119,16 @@ namespace BackEnd
 
             app.Use(async (context, next) =>
             {
-                var collector = context.RequestServices.GetService<MetricsCollector>();
-                var telemetryClient = context.RequestServices.GetService<TelemetryClient>();
-                Console.WriteLine("Recording metrics for request");
-                CollectMetrics(context, collector, telemetryClient);
-
                 var stopwatch = Stopwatch.StartNew();
                 await next();
                 stopwatch.Stop();
                 RequestCounterEventSource.Log.Request(context.Request.Path, stopwatch.ElapsedMilliseconds);
+
+                var collector = context.RequestServices.GetService<MetricsCollector>();
+                var telemetryClient = context.RequestServices.GetService<TelemetryClient>();
+                Console.WriteLine("Recording metrics for request");
+
+                CollectMetrics(context, collector, telemetryClient, stopwatch.ElapsedMilliseconds);
             });
 
             if (env.IsDevelopment())
@@ -153,23 +154,26 @@ namespace BackEnd
             });
         }
 
-        private void CollectMetrics(HttpContext context, MetricsCollector collector, TelemetryClient telemetryClient)
+        private void CollectMetrics(HttpContext context, MetricsCollector collector, TelemetryClient telemetryClient, long elapsedMs)
         {
             if (telemetryClient != null)
             {
                 Console.WriteLine("Logging to AppInsights");
-                telemetryClient.TrackMetric(new MetricTelemetry("request", 1));
+                telemetryClient.TrackMetric(new MetricTelemetry("request_duration", elapsedMs));
             }
 
             if (collector != null)
             {
-                Console.WriteLine("Logging to InfluxDb");
-                collector.Increment("requests", tags: new Dictionary<string, string>()
+                var tags = new Dictionary<string, string>()
                 {
                     {"path", context.Request.Path},
                     {"client_ip", context.Connection.RemoteIpAddress.ToString() },
                     {"user_agent", context.Request.Headers["User-Agent"].ToString() }
-                });
+                };
+
+                Console.WriteLine("Logging to InfluxDb");
+                collector.Increment("request_count", tags: tags);
+                collector.Measure("request_duration", elapsedMs, tags: tags);
             }
         }
     }
