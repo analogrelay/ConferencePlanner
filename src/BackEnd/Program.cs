@@ -1,8 +1,7 @@
+using System;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
-using System;
-using System.Diagnostics.Tracing;
 
 namespace BackEnd
 {
@@ -17,7 +16,7 @@ namespace BackEnd
         {
             var hostConfig = new ConfigurationBuilder()
                 .AddEnvironmentVariables(prefix: "ASPNETCORE_")
-                .AddDockerSecrets()
+                .AddDockerSecrets("/run/secrets", optional: true)
                 .AddCommandLine(args)
                 .Build();
 
@@ -33,7 +32,7 @@ namespace BackEnd
                 .UseConfiguration(hostConfig)
                 .ConfigureAppConfiguration(configurationBuilder =>
                 {
-                    configurationBuilder.AddDockerSecrets();
+                    configurationBuilder.AddDockerSecrets("/run/secrets", optional: true);
                 })
                 .UseStartup<Startup>()
                 .Build();

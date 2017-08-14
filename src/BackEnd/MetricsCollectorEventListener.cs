@@ -10,7 +10,7 @@ namespace BackEnd
     {
         private readonly MetricsCollector _collector;
 
-        protected MetricCollectorEventListener(MetricsCollector collector)
+        public MetricCollectorEventListener(MetricsCollector collector)
         {
             _collector = collector;
         }

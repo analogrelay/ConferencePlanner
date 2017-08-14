@@ -97,10 +97,15 @@ namespace BackEnd
             });
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, TelemetryConfiguration telemetryConfiguration, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
             loggerFactory.AddApplicationInsights(app.ApplicationServices);
-            telemetryConfiguration.TelemetryInitializers.Add(new ServiceNameTelemetryInitializer("Backend"));
+
+            var telemetryConfiguration = app.ApplicationServices.GetService<TelemetryConfiguration>();
+            if (telemetryConfiguration != null)
+            {
+                telemetryConfiguration.TelemetryInitializers.Add(new ServiceNameTelemetryInitializer("Backend"));
+            }
 
             var listener = app.ApplicationServices.GetService<MetricCollectorEventListener>();
             if (listener != null)
