@@ -1,22 +1,19 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using BackEnd.Data;
-using InfluxDB.Collector;
-using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.DataContracts;
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.Swagger;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.Extensions.Logging;
 
 namespace BackEnd
 {
@@ -35,28 +32,6 @@ namespace BackEnd
             // * Authentication:Tenant
             // * Authentication:ClientId
             // * ConnectionStrings:DefaultConnectionString
-
-            var influxAddress = Configuration["Metrics:InfluxDb:Url"];
-            var influxDb = Configuration["Metrics:InfluxDb:Database"];
-            if (!string.IsNullOrEmpty(influxAddress) && !string.IsNullOrEmpty(influxDb))
-            {
-                Console.WriteLine($"Using influxdb metrics collection: {influxDb}");
-                var collector = new CollectorConfiguration()
-                    .Tag.With("host", Environment.GetEnvironmentVariable("HOSTNAME"))
-                    .Tag.With("conferenceplanner.app", "backend")
-                    .Batch.AtInterval(TimeSpan.FromSeconds(2))
-                    .WriteTo.InfluxDB(influxAddress, influxDb)
-                    .CreateCollector();
-
-                services.AddSingleton(collector);
-                services.AddSingleton<MetricCollectorEventListener>();
-            }
-            else
-            {
-                var collector = new CollectorConfiguration()
-                    .CreateCollector();
-                services.AddSingleton(collector);
-            }
 
             services.AddDbContext<ApplicationDbContext>(options =>
             {
@@ -97,39 +72,10 @@ namespace BackEnd
             });
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, TelemetryConfiguration telemetryConfiguration, ILoggerFactory loggerFactory)
         {
             loggerFactory.AddApplicationInsights(app.ApplicationServices);
-
-            var telemetryConfiguration = app.ApplicationServices.GetService<TelemetryConfiguration>();
-            if (telemetryConfiguration != null)
-            {
-                telemetryConfiguration.TelemetryInitializers.Add(new ServiceNameTelemetryInitializer("Backend"));
-            }
-
-            var listener = app.ApplicationServices.GetService<MetricCollectorEventListener>();
-            if (listener != null)
-            {
-                listener.EnableEvents(Microsoft.AspNetCore.Hosting.Internal.HostingEventSource.Log, System.Diagnostics.Tracing.EventLevel.LogAlways, System.Diagnostics.Tracing.EventKeywords.All);
-                listener.EnableEvents(RequestCounterEventSource.Log, System.Diagnostics.Tracing.EventLevel.LogAlways, System.Diagnostics.Tracing.EventKeywords.All, new Dictionary<string, string>()
-                {
-                    { "EventCounterIntervalSec", "1" }
-                });
-            }
-
-            app.Use(async (context, next) =>
-            {
-                var stopwatch = Stopwatch.StartNew();
-                await next();
-                stopwatch.Stop();
-                RequestCounterEventSource.Log.Request(context.Request.Path, stopwatch.ElapsedMilliseconds);
-
-                var collector = context.RequestServices.GetService<MetricsCollector>();
-                var telemetryClient = context.RequestServices.GetService<TelemetryClient>();
-                Console.WriteLine("Recording metrics for request");
-
-                CollectMetrics(context, collector, telemetryClient, stopwatch.ElapsedMilliseconds);
-            });
+            telemetryConfiguration.TelemetryInitializers.Add(new ServiceNameTelemetryInitializer("Backend"));
 
             if (env.IsDevelopment())
             {
@@ -152,29 +98,6 @@ namespace BackEnd
                 context.Response.Redirect("/swagger");
                 return Task.CompletedTask;
             });
-        }
-
-        private void CollectMetrics(HttpContext context, MetricsCollector collector, TelemetryClient telemetryClient, long elapsedMs)
-        {
-            if (telemetryClient != null)
-            {
-                Console.WriteLine("Logging to AppInsights");
-                telemetryClient.TrackMetric(new MetricTelemetry("request_duration", elapsedMs));
-            }
-
-            if (collector != null)
-            {
-                var tags = new Dictionary<string, string>()
-                {
-                    {"path", context.Request.Path},
-                    {"client_ip", context.Connection.RemoteIpAddress.ToString() },
-                    {"user_agent", context.Request.Headers["User-Agent"].ToString() }
-                };
-
-                Console.WriteLine("Logging to InfluxDb");
-                collector.Increment("request_count", tags: tags);
-                collector.Measure("request_duration", elapsedMs, tags: tags);
-            }
         }
     }
 }

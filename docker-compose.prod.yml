@@ -17,14 +17,6 @@ services:
       - source: applicationinsights.instrumentationkey
         target: ApplicationInsights__InstrumentationKey
         mode: 0444
-      - source: influxdb.url
-        target: Metrics__InfluxDb__Url
-        mode: 0444
-      - source: influxdb.database
-        target: Metrics__InfluxDb__Database
-        mode: 0444
-    networks:
-      - diagnostics
 
   frontend:
     deploy:
@@ -50,7 +42,6 @@ services:
         mode: 0444
     networks:
       - proxy
-      - diagnostics
 
 secrets:
   authentication.tenant:
@@ -65,13 +56,7 @@ secrets:
     external: true
   applicationinsights.instrumentationkey:
     external: true
-  influxdb.url:
-    external: true
-  influxdb.database:
-    external: true
 
 networks:
   proxy:
-    external: true
-  diagnostics:
     external: true

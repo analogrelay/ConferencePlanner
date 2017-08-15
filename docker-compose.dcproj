@@ -9,13 +9,11 @@
     <DockerServiceName>frontend</DockerServiceName>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="docker-compose.diagnostics.yml" />
     <None Include="docker-compose.override.yml">
       <DependentUpon>docker-compose.yml</DependentUpon>
     </None>
     <None Include="docker-compose.prod.yml" />
     <None Include="docker-compose.proxy.yml" />
     <None Include="docker-compose.yml" />
-    <None Include="telegraf.conf" />
   </ItemGroup>
 </Project>

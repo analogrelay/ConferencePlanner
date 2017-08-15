@@ -1,7 +1,7 @@
-using System;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using System;
 
 namespace BackEnd
 {
@@ -16,13 +16,13 @@ namespace BackEnd
         {
             var hostConfig = new ConfigurationBuilder()
                 .AddEnvironmentVariables(prefix: "ASPNETCORE_")
-                .AddDockerSecrets("/run/secrets", optional: true)
+                .AddDockerSecrets()
                 .AddCommandLine(args)
                 .Build();
 
             var hostBuilder = WebHost.CreateDefaultBuilder(args);
             var instrumentationKey = hostConfig["ApplicationInsights:InstrumentationKey"];
-            if (!string.IsNullOrEmpty(instrumentationKey))
+            if(!string.IsNullOrEmpty(instrumentationKey))
             {
                 Console.WriteLine("Using Application Insights");
                 hostBuilder.UseApplicationInsights(instrumentationKey.Trim());
@@ -32,7 +32,7 @@ namespace BackEnd
                 .UseConfiguration(hostConfig)
                 .ConfigureAppConfiguration(configurationBuilder =>
                 {
-                    configurationBuilder.AddDockerSecrets("/run/secrets", optional: true);
+                    configurationBuilder.AddDockerSecrets();
                 })
                 .UseStartup<Startup>()
                 .Build();

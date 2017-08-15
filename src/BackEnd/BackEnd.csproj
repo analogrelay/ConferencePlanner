@@ -11,7 +11,6 @@
     <PackageReference Include="Microsoft.AspNetCore.All" Version="$(AspNetCoreVersion)" />
     <PackageReference Include="Microsoft.Extensions.Configuration.DockerSecrets" Version="$(AspNetCoreVersion)" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="$(SwashbuckleVersion)" />
-    <PackageReference Include="InfluxDB.Collector" Version="1.0.0-dev-10071" />
   </ItemGroup>
 
   <ItemGroup>
