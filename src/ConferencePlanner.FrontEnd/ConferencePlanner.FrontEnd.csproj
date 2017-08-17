@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <MvcRazorCompileOnPublish>true</MvcRazorCompileOnPublish>
+    <UserSecretsId>aspnet-FrontEnd-18BDC1FA-5BA8-408A-BC82-D8DB0496B86B</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.All" Version="$(AspNetCoreVersion)" />
+    <PackageReference Include="Microsoft.Identity.Client" Version="$(IdentityClientVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <DotNetCliToolReference Include="Microsoft.DotNet.Watcher.Tools" Version="$(AspNetCoreVersion)" />
+    <DotNetCliToolReference Include="Microsoft.Extensions.SecretManager.Tools" Version="$(AspNetCoreVersion)" />
+  </ItemGroup>
+ 
+  <ItemGroup>
+    <ProjectReference Include="..\..\vendor\aspnet\Configuration\src\Config.DockerSecrets\Config.DockerSecrets.csproj" />
+    <ProjectReference Include="..\ConferencePlanner.Common\ConferencePlanner.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <WCFMetadata Include="Connected Services" />
+  </ItemGroup>
+
+</Project>
