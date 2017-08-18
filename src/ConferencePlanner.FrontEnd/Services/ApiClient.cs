@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using ConferencePlanner.Common.Metrics;
 using ConferencePlanner.FrontEnd.Infrastructure;
 using ConferencePlanner.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 
 namespace ConferencePlanner.FrontEnd.Services
@@ -16,9 +17,9 @@ namespace ConferencePlanner.FrontEnd.Services
     {
         private readonly HttpClient _httpClient;
 
-        public ApiClient(IOptions<ApiOptions> options, IMetricsService metricsService)
+        public ApiClient(IOptions<ApiOptions> options, IMetricsService metricsService, IHttpContextAccessor httpContextAccessor)
         {
-            _httpClient = new HttpClient()
+            _httpClient = new HttpClient(new MetricTrackingHandler(httpContextAccessor, "ConferencePlanner.BackEndCall", metricsService, new HttpClientHandler()))
             {
                 BaseAddress = new Uri(options.Value.Url)
             };

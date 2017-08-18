@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <Compile Remove="EntityFrameworkMetricsCollector.cs" />
+    <Compile Remove="HttpClientMetricRecorder.cs" />
     <Compile Remove="Services\IHttpService.cs" />
   </ItemGroup>
 

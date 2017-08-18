@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data.Common;
 using System.Diagnostics;
 using ConferencePlanner.Common.Metrics;
@@ -33,7 +34,8 @@ namespace ConferencePlanner.BackEnd
             private readonly IMetricsService _metricsService;
             private static Dictionary<string, Action<EventObserver, object>> _handlers = new Dictionary<string, Action<EventObserver, object>>()
             {
-                [RelationalEventId.CommandExecuting.Name] = (o, p) => o.OnCommandExecuting((DbCommand)p)
+                [RelationalEventId.CommandExecuting.Name] = (o, p) => o.OnCommandExecuting((CommandEventData)p),
+                [RelationalEventId.CommandExecuted.Name] = (o, p) => o.OnCommandExecuted((CommandEventData)p)
             };
 
             public EventObserver(IMetricsService metricsService)
@@ -57,8 +59,54 @@ namespace ConferencePlanner.BackEnd
                 }
             }
 
-            private void OnCommandExecuting(DbCommand command)
+            private void OnCommandExecuting(CommandEventData data)
             {
+                data.Command.Site = new CommandTimer();
+            }
+
+            private void OnCommandExecuted(CommandEventData data)
+            {
+                if(data.Command.Site is CommandTimer timer)
+                {
+                    var time = timer.Stop();
+                    var text = data.Command.CommandText
+                        .Replace("\r", "")
+                        .Replace("\n", " ");
+                    _metricsService.Write(RelationalEventId.CommandExecuted.Name, new Dictionary<string, object>()
+                    {
+                        [nameof(data.Command.CommandText)] = text,
+                        ["value"] = time.TotalMilliseconds,
+                    },
+                    new Dictionary<string, string>()
+                    {
+                        [nameof(data.Command.CommandText)] = text,
+                    },
+                    timestamp: null);
+                }
+            }
+
+            // THIS IS SO WRONG BUT IT FEELS SO RIGHT
+            private class CommandTimer : ISite
+            {
+                private readonly Stopwatch _stopwatch;
+
+                public IComponent Component { get; set; }
+                public IContainer Container { get; set; }
+                public string Name { get; set; } = nameof(CommandTimer);
+                public bool DesignMode => false;
+
+                public CommandTimer()
+                {
+                    _stopwatch = Stopwatch.StartNew();
+                }
+
+                public object GetService(Type serviceType) => null;
+
+                public TimeSpan Stop()
+                {
+                    _stopwatch.Stop();
+                    return _stopwatch.Elapsed;
+                }
             }
         }
 
