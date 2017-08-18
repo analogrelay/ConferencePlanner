@@ -1,13 +1,16 @@
 using System.Threading.Tasks;
 using ConferencePlanner.BackEnd.Data;
+using ConferencePlanner.Common.Metrics;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.Swagger;
 
@@ -28,6 +31,14 @@ namespace ConferencePlanner.BackEnd
             // * Authentication:Tenant
             // * Authentication:ClientId
             // * ConnectionStrings:DefaultConnectionString
+
+            services.AddMetrics();
+            var config = Configuration.GetSection("Metrics:InfluxDb");
+            if (config.Exists())
+            {
+                services.AddInfluxMetrics(config);
+            }
+            services.AddSingleton<IMetricsCollector, EntityFrameworkMetricsCollector>();
 
             services.AddDbContext<ApplicationDbContext>(options =>
             {

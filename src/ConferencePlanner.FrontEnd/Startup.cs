@@ -1,5 +1,6 @@
 using System;
 using System.Net.Http;
+using ConferencePlanner.Common.Metrics;
 using ConferencePlanner.FrontEnd.Authentication;
 using ConferencePlanner.FrontEnd.Filters;
 using ConferencePlanner.FrontEnd.Services;
@@ -12,6 +13,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -33,6 +35,13 @@ namespace ConferencePlanner.FrontEnd
             // * Authentication:Tenant
             // * Authentication:ClientId
             // * Authentication:ClientSecret
+
+            services.AddMetrics();
+            var config = Configuration.GetSection("Metrics:InfluxDb");
+            if (config.Exists())
+            {
+                services.AddInfluxMetrics(config);
+            }
 
             services
                 .AddMvc(options =>
@@ -73,11 +82,7 @@ namespace ConferencePlanner.FrontEnd
                 });
             });
 
-            var httpClient = new HttpClient
-            {
-                BaseAddress = new Uri(Configuration["serviceUrl"])
-            };
-            services.AddSingleton(httpClient);
+            services.Configure<ApiOptions>(Configuration.GetSection("Api"));
             services.AddSingleton<IApiClient, ApiClient>();
         }
 

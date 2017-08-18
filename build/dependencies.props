@@ -4,6 +4,8 @@
         <SwashbuckleVersion>1.0.0</SwashbuckleVersion>
         <NewtonsoftJsonVersion>10.0.2</NewtonsoftJsonVersion>
         <ComponentModelAnnotationsVersion>4.4.0</ComponentModelAnnotationsVersion>
+        <DiagnosticSourceVersion>4.4.0</DiagnosticSourceVersion>
         <IdentityClientVersion>1.1.0-preview</IdentityClientVersion>
+        <InfluxDbVersion>1.0.0-dev-10071</InfluxDbVersion>
     </PropertyGroup>
 </Project>

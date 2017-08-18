@@ -1,11 +1,14 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using ConferencePlanner.Common.Metrics;
 using ConferencePlanner.FrontEnd.Infrastructure;
 using ConferencePlanner.Models;
+using Microsoft.Extensions.Options;
 
 namespace ConferencePlanner.FrontEnd.Services
 {
@@ -13,9 +16,12 @@ namespace ConferencePlanner.FrontEnd.Services
     {
         private readonly HttpClient _httpClient;
 
-        public ApiClient(HttpClient httpClient)
+        public ApiClient(IOptions<ApiOptions> options, IMetricsService metricsService)
         {
-            _httpClient = httpClient;
+            _httpClient = new HttpClient()
+            {
+                BaseAddress = new Uri(options.Value.Url)
+            };
         }
 
         public async Task<AttendeeResponse> GetMeAsync(string accessToken)
