@@ -11,14 +11,14 @@ namespace ConferencePlanner.FrontEnd.Services
 {
     public class MetricTrackingHandler : DelegatingHandler
     {
-        private readonly string _measurementName;
+        private static readonly string MeasurementName = "HttpRequest";
+
         private readonly IMetricsService _metrics;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public MetricTrackingHandler(IHttpContextAccessor httpContextAccessor, string measurementName, IMetricsService metricsService, HttpMessageHandler innerHandler) : base(innerHandler)
+        public MetricTrackingHandler(IHttpContextAccessor httpContextAccessor, IMetricsService metricsService, HttpMessageHandler innerHandler) : base(innerHandler)
         {
             _httpContextAccessor = httpContextAccessor;
-            _measurementName = measurementName;
             _metrics = metricsService;
         }
 
@@ -27,35 +27,43 @@ namespace ConferencePlanner.FrontEnd.Services
             var fields = new Dictionary<string, object>();
             var tags = new Dictionary<string, string>();
 
-            fields[nameof(request.RequestUri)] = request.RequestUri.ToString();
-            fields[nameof(request.Method)] = request.Method.ToString();
-            fields[nameof(_httpContextAccessor.HttpContext.TraceIdentifier)] = _httpContextAccessor.HttpContext.TraceIdentifier;
-
-            request.Headers.Add("FrontendRequestId", _httpContextAccessor.HttpContext.TraceIdentifier);
+            tags[nameof(request.RequestUri)] = request.RequestUri.ToString();
+            tags[nameof(request.Method)] = request.Method.ToString();
+            tags[nameof(_httpContextAccessor.HttpContext.TraceIdentifier)] = _httpContextAccessor.HttpContext.TraceIdentifier;
+            tags["RequestId"] = Activity.Current?.Id ?? _httpContextAccessor.HttpContext.TraceIdentifier;
 
             var stopwatch = Stopwatch.StartNew();
-            HttpResponseMessage response;
+            HttpResponseMessage response = null;
             try
             {
                 response = await base.SendAsync(request, cancellationToken);
-                fields["Success"] = true;
+                stopwatch.Stop();
+                tags["Success"] = "true";
             }
             catch (Exception ex)
             {
-                fields["Success"] = false;
-                fields["Exception"] = ex.ToString();
+                stopwatch.Stop();
+                tags["Success"] = "false";
+                tags["Exception"] = ex.ToString().Replace("\n", " ").Replace("\r", "");
+                tags[nameof(response.StatusCode)] = "ConnectionFailure";
 
-                // Rethrow, but trace exception info
-                _metrics.Write(_measurementName, fields, tags, timestamp: null);
+                // Rethrow, but finally block should trace exception info
                 throw;
             }
+            finally
+            {
+                fields["value"] = stopwatch.Elapsed.TotalMilliseconds;
 
-            // If we got here, the request completed, but still may have been a failed status code.
-            fields[nameof(response.StatusCode)] = response.StatusCode;
-            fields[nameof(response.ReasonPhrase)] = response.ReasonPhrase;
+                // If we got here, the request completed, but still may have been a failed status code.
+                if (response != null)
+                {
+                    tags[nameof(response.StatusCode)] = ((int)response.StatusCode).ToString();
+                    tags[nameof(response.ReasonPhrase)] = response.ReasonPhrase.Replace("\n", " ").Replace("\r", "");
+                }
 
-            _metrics.Write(_measurementName, fields, tags, timestamp: null);
+                _metrics.Write(MeasurementName, fields, tags, timestamp: null);
 
+            }
             return response;
         }
     }

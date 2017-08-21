@@ -19,7 +19,7 @@ namespace ConferencePlanner.FrontEnd.Services
 
         public ApiClient(IOptions<ApiOptions> options, IMetricsService metricsService, IHttpContextAccessor httpContextAccessor)
         {
-            _httpClient = new HttpClient(new MetricTrackingHandler(httpContextAccessor, "ConferencePlanner.BackEndCall", metricsService, new HttpClientHandler()))
+            _httpClient = new HttpClient(new MetricTrackingHandler(httpContextAccessor, metricsService, new HttpClientHandler()))
             {
                 BaseAddress = new Uri(options.Value.Url)
             };
