@@ -17,7 +17,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static void AddInfluxMetrics(this IServiceCollection self)
         {
             self.AddMetrics();
-            self.TryAdd(ServiceDescriptor.Singleton(typeof(IMetricsSink), typeof(InfluxMetricsSink)));
+            self.Add(ServiceDescriptor.Singleton(typeof(IMetricsSink), typeof(InfluxMetricsSink)));
         }
 
         public static void AddInfluxMetrics(this IServiceCollection self, Action<InfluxMetricsOptions> configure)
@@ -30,6 +30,24 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             self.AddInfluxMetrics();
             self.Configure<InfluxMetricsOptions>(configurationSection);
+        }
+
+        public static void AddElasticSearchMetrics(this IServiceCollection self)
+        {
+            self.AddMetrics();
+            self.Add(ServiceDescriptor.Singleton(typeof(IMetricsSink), typeof(ElasticSearchMetricsSink)));
+        }
+
+        public static void AddElasticSearchMetrics(this IServiceCollection self, Action<ElasticSearchMetricsOptions> configure)
+        {
+            self.AddElasticSearchMetrics();
+            self.Configure(configure);
+        }
+
+        public static void AddElasticSearchMetrics(this IServiceCollection self, IConfiguration configurationSection)
+        {
+            self.AddElasticSearchMetrics();
+            self.Configure<ElasticSearchMetricsOptions>(configurationSection);
         }
     }
 }

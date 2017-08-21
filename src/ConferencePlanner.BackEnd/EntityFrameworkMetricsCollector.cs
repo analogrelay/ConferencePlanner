@@ -78,10 +78,9 @@ namespace ConferencePlanner.BackEnd
                     var text = data.Command.CommandText
                         .Replace("\r", "")
                         .Replace("\n", " ");
-                    _metricsService.Write(RelationalEventId.CommandExecuted.Name, new Dictionary<string, object>()
+                    _metricsService.Write(RelationalEventId.CommandExecuted.Name, time.TotalMilliseconds, new Dictionary<string, object>()
                     {
-                        [nameof(data.Command.CommandText)] = text,
-                        ["value"] = time.TotalMilliseconds,
+                        [nameof(data.Command.CommandText)] = text
                     },
                     new Dictionary<string, string>()
                     {

@@ -19,5 +19,6 @@
 
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageReference Include="InfluxDb.Collector" Version="$(InfluxDbVersion)" />
+    <PackageReference Include="NEST" Version="$(ElasticSearchVersion)" />
   </ItemGroup>
 </Project>

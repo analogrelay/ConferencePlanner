@@ -7,5 +7,6 @@
         <DiagnosticSourceVersion>4.4.0</DiagnosticSourceVersion>
         <IdentityClientVersion>1.1.0-preview</IdentityClientVersion>
         <InfluxDbVersion>1.0.0-dev-10071</InfluxDbVersion>
+        <ElasticSearchVersion>5.5.0</ElasticSearchVersion>
     </PropertyGroup>
 </Project>

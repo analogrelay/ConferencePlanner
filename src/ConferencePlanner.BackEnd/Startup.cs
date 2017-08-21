@@ -32,12 +32,7 @@ namespace ConferencePlanner.BackEnd
             // * Authentication:ClientId
             // * ConnectionStrings:DefaultConnectionString
 
-            services.AddMetrics();
-            var config = Configuration.GetSection("Metrics:InfluxDb");
-            if (config.Exists())
-            {
-                services.AddInfluxMetrics(config);
-            }
+            MetricsHelper.RegisterMetrics(services, Configuration);
             services.AddSingleton<IMetricsCollector, EntityFrameworkMetricsCollector>();
 
             services.AddDbContext<ApplicationDbContext>(options =>

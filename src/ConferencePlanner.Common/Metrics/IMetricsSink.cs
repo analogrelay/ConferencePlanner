@@ -5,6 +5,6 @@ namespace ConferencePlanner.Common.Metrics
 {
     public interface IMetricsSink
     {
-        void Write(string measurement, IReadOnlyDictionary<string, object> fields, IReadOnlyDictionary<string, string> tags, DateTime? timestamp);
+        void Write(string measurement, double value, IDictionary<string, object> fields, IDictionary<string, string> tags, DateTime? timestamp);
     }
 }

@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 using InfluxDB.Collector;
 using InfluxDB.Collector.Pipeline;
 using InfluxDB.LineProtocol.Client;
@@ -35,9 +37,10 @@ namespace ConferencePlanner.Common.Metrics
             _logger = logger;
         }
 
-        public void Write(string measurement, IReadOnlyDictionary<string, object> fields, IReadOnlyDictionary<string, string> tags = null, DateTime? timestamp = null)
+        public void Write(string measurement, double value, IDictionary<string, object> fields, IDictionary<string, string> tags = null, DateTime? timestamp = null)
         {
-            _collector.Write(measurement, fields, tags);
+            fields["value"] = value;
+            _collector.Measure(measurement, fields, new ReadOnlyDictionary<string, string>(tags));
         }
 
         private void WritePoints(PointData[] points)

@@ -52,8 +52,6 @@ namespace ConferencePlanner.FrontEnd.Services
             }
             finally
             {
-                fields["value"] = stopwatch.Elapsed.TotalMilliseconds;
-
                 // If we got here, the request completed, but still may have been a failed status code.
                 if (response != null)
                 {
@@ -61,7 +59,7 @@ namespace ConferencePlanner.FrontEnd.Services
                     tags[nameof(response.ReasonPhrase)] = response.ReasonPhrase.Replace("\n", " ").Replace("\r", "");
                 }
 
-                _metrics.Write(MeasurementName, fields, tags, timestamp: null);
+                _metrics.Write(MeasurementName, stopwatch.Elapsed.TotalMilliseconds, fields, tags, timestamp: null);
 
             }
             return response;

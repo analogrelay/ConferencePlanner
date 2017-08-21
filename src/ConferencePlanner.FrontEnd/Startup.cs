@@ -36,12 +36,7 @@ namespace ConferencePlanner.FrontEnd
             // * Authentication:ClientId
             // * Authentication:ClientSecret
 
-            services.AddMetrics();
-            var config = Configuration.GetSection("Metrics:InfluxDb");
-            if (config.Exists())
-            {
-                services.AddInfluxMetrics(config);
-            }
+            MetricsHelper.RegisterMetrics(services, Configuration);
 
             services
                 .AddMvc(options =>

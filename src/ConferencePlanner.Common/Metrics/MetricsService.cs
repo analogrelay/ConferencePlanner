@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
-using Microsoft.Extensions.Options;
 
 namespace ConferencePlanner.Common.Metrics
 {
@@ -14,11 +12,11 @@ namespace ConferencePlanner.Common.Metrics
             _sinks = sinks;
         }
 
-        public void Write(string measurement, IReadOnlyDictionary<string, object> fields, IReadOnlyDictionary<string, string> tags, DateTime? timestamp)
+        public void Write(string measurement, double value, IDictionary<string, object> fields, IDictionary<string, string> tags, DateTime? timestamp)
         {
             foreach(var sink in _sinks)
             {
-                sink.Write(measurement, fields, tags, timestamp);
+                sink.Write(measurement, value, fields, tags, timestamp);
             }
         }
     }
