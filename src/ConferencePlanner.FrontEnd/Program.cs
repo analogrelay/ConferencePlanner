@@ -1,4 +1,5 @@
 using System;
+using ConferencePlanner.Common.Logging;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -37,6 +38,10 @@ namespace ConferencePlanner.FrontEnd
                 .ConfigureAppConfiguration(configurationBuilder =>
                 {
                     configurationBuilder.AddDockerSecrets(optional: true);
+                })
+                .ConfigureLogging((context, logging) =>
+                {
+                    LoggingHelper.RegisterLogging("FrontEnd", logging, context.Configuration);
                 })
                 .UseStartup<Startup>()
                 .Build();

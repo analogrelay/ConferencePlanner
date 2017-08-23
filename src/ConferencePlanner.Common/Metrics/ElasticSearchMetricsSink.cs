@@ -7,28 +7,35 @@ namespace ConferencePlanner.Common.Metrics
 {
     public class ElasticSearchMetricsSink : IMetricsSink
     {
-        private static readonly string DefaultIndexName = "metrics";
+        private static readonly string DefaultIndexPrefix = "metrics-";
         private readonly ElasticClient _client;
+        private readonly string _indexPrefix;
 
         public ElasticSearchMetricsSink(IOptions<ElasticSearchMetricsOptions> options)
         {
-            var indexName = string.IsNullOrEmpty(options.Value.IndexName) ? DefaultIndexName : options.Value.IndexName;
-            var config = new ConnectionSettings(new Uri(options.Value.Address))
-                .InferMappingFor<Metric>(m => m.IndexName(indexName).TypeName("metric"));
+            _indexPrefix = string.IsNullOrEmpty(options.Value.IndexPrefix) ? DefaultIndexPrefix : options.Value.IndexPrefix;
+            var config = new ConnectionSettings(new Uri(options.Value.Address));
             _client = new ElasticClient(config);
         }
 
         public void Write(string measurement, double value, IDictionary<string, object> fields, IDictionary<string, string> tags, DateTime? timestamp)
         {
             // TODO: Batching
-            _client.Index(new Metric
+            // TODO: Cache index name
+            var indexName = _indexPrefix + DateTime.UtcNow.ToString("yyyy.MM.dd");
+            var request = new IndexRequest<Metric>(indexName, measurement)
             {
-                Measurement = measurement,
-                Value = value,
-                Fields = fields,
-                Tags = tags,
-                TimestampUtc = DateTime.UtcNow,
-            });
+                Document = new Metric()
+                {
+                    Measurement = measurement,
+                    Value = value,
+                    Fields = fields,
+                    Tags = tags,
+                    TimestampUtc = DateTime.UtcNow,
+                }
+            };
+
+            _client.Index(request);
         }
 
         private class Metric

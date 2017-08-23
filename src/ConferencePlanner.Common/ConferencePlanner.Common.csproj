@@ -20,5 +20,11 @@
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageReference Include="InfluxDb.Collector" Version="$(InfluxDbVersion)" />
     <PackageReference Include="NEST" Version="$(ElasticSearchVersion)" />
+
+    <PackageReference Include="Serilog.Extensions.Logging" Version="$(SerilogExtensionsLoggingVersion)" />
+    <PackageReference Include="Serilog.Sinks.ElasticSearch" Version="$(SerilogElasticSearchVersion)" />
+    <PackageReference Include="Serilog.Enrichers.Environment" Version="$(SerilogEnvironmentEnricherVersion)" />
+    <PackageReference Include="Serilog.Enrichers.Process" Version="$(SerilogProcessEnricherVersion)" />
+    <PackageReference Include="Serilog.Enrichers.Thread" Version="$(SerilogThreadEnricherVersion)" />
   </ItemGroup>
 </Project>

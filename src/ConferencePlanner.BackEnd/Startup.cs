@@ -76,6 +76,7 @@ namespace ConferencePlanner.BackEnd
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
+            var logger = loggerFactory.CreateLogger("test");
             loggerFactory.AddApplicationInsights(app.ApplicationServices);
 
             var telemetryConfiguration = app.ApplicationServices.GetService<TelemetryConfiguration>();

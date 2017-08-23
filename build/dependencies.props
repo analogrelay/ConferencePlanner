@@ -8,5 +8,10 @@
         <IdentityClientVersion>1.1.0-preview</IdentityClientVersion>
         <InfluxDbVersion>1.0.0-dev-10071</InfluxDbVersion>
         <ElasticSearchVersion>5.5.0</ElasticSearchVersion>
+        <SerilogExtensionsLoggingVersion>2.0.0</SerilogExtensionsLoggingVersion>
+        <SerilogElasticSearchVersion>5.3.0</SerilogElasticSearchVersion>
+        <SerilogEnvironmentEnricherVersion>2.1.2</SerilogEnvironmentEnricherVersion>
+        <SerilogThreadEnricherVersion>3.0.0</SerilogThreadEnricherVersion>
+        <SerilogProcessEnricherVersion>2.0.1</SerilogProcessEnricherVersion>
     </PropertyGroup>
 </Project>
