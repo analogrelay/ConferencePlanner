@@ -1,0 +1,7 @@
+http:
+  host: 0.0.0.0
+  cors:
+    enabled: true
+    allow-origin: /https?:\/\/(localhost|www.elastichq.org)(:[0-9]+)?/
+transport:
+  host: 127.0.0.1

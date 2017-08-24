@@ -79,6 +79,8 @@ namespace ConferencePlanner.BackEnd
             var logger = loggerFactory.CreateLogger("test");
             loggerFactory.AddApplicationInsights(app.ApplicationServices);
 
+            app.Use((context, next) => next());
+
             var telemetryConfiguration = app.ApplicationServices.GetService<TelemetryConfiguration>();
             if (telemetryConfiguration != null)
             {

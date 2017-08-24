@@ -1,24 +1,26 @@
 using System;
+using Elasticsearch.Net;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using Serilog.Core;
 using Serilog.Events;
-using Serilog.Extensions.Logging;
 using Serilog.Sinks.Elasticsearch;
 
 namespace ConferencePlanner.Common.Logging
 {
     public static class LoggingHelper
     {
-        public static void RegisterLogging(string service, ILoggingBuilder logging, IConfiguration configuration)
+        public static void RegisterLogging(string service, ILoggingBuilder logging, IConfiguration configuration) 
         {
             var loggerConfiguration = new LoggerConfiguration()
                 .Enrich.WithEnvironmentUserName()
                 .Enrich.WithMachineName()
                 .Enrich.WithProcessId()
                 .Enrich.WithThreadId()
-                .Enrich.WithProperty("service", service)
+                .Enrich.WithProperty("Service", service)
                 .Enrich.FromLogContext()
+                .Enrich.With(new ActivityIdEnricher())
                 .MinimumLevel.Is(LogEventLevel.Verbose);
 
             var elasticSearchSection = configuration.GetSection("Logging:ElasticSearch");
@@ -26,12 +28,27 @@ namespace ConferencePlanner.Common.Logging
             {
                 var elasticSearchAddress = elasticSearchSection["Address"];
                 if (!string.IsNullOrEmpty(elasticSearchAddress)) {
-                    var sinkOptions = new ElasticsearchSinkOptions(new Uri(elasticSearchAddress));
+                    var sinkOptions = new ElasticsearchSinkOptions(new Uri(elasticSearchAddress))
+                    {
+                        AutoRegisterTemplate = true,
+                        ModifyConnectionSettings = settings => ModifySettings(elasticSearchSection, settings)
+                    };
                     loggerConfiguration.WriteTo.Elasticsearch(sinkOptions);
                 }
             }
 
             logging.AddSerilog(loggerConfiguration.CreateLogger(), dispose: true);
+        }
+
+        private static ConnectionConfiguration ModifySettings(IConfigurationSection elasticSearchSection, ConnectionConfiguration settings)
+        {
+            var username = elasticSearchSection["Username"];
+            if(!string.IsNullOrEmpty(username))
+            {
+                settings.BasicAuthentication(username, elasticSearchSection["Password"]);
+            }
+
+            return settings;
         }
     }
 }

@@ -6,16 +6,19 @@ using ConferencePlanner.FrontEnd.Services;
 using ConferencePlanner.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Logging;
 
 namespace ConferencePlanner.FrontEnd.Pages
 {
     public class IndexModel : PageModel
     {
         protected readonly IApiClient _apiClient;
+        private readonly ILogger<IndexModel> _logger;
 
-        public IndexModel(IApiClient apiClient)
+        public IndexModel(IApiClient apiClient, ILogger<IndexModel> logger)
         {
             _apiClient = apiClient;
+            _logger = logger;
         }
 
         public IEnumerable<IGrouping<DateTimeOffset?, SessionResponse>> Sessions { get; set; }
@@ -31,16 +34,21 @@ namespace ConferencePlanner.FrontEnd.Pages
 
         public bool ShowMessage => !string.IsNullOrEmpty(Message);
 
-        protected virtual Task<List<SessionResponse>> GetSessionsAsync()
+        protected virtual async Task<List<SessionResponse>> GetSessionsAsync()
         {
-            return _apiClient.GetSessionsAsync();
+            _logger.LogDebug("Fetching all sessions");
+            var result = await _apiClient.GetSessionsAsync();
+            _logger.LogDebug("Fetched {Count} sessions", result.Count);
+            return result;
         }
 
         public async Task OnGet(int day = 0)
         {
             CurrentDayOffset = day;
 
+            _logger.LogDebug("Fetching sessions for user {UserName}", User.Identity.Name);
             var userSessions = await _apiClient.GetSessionsByAttendeeAsync(User.Identity.Name);
+            _logger.LogDebug("Fetched {SessionCount} sessions for user {UserName}", userSessions.Count, User.Identity.Name);
 
             UserSessions = userSessions.Select(u => u.ID).ToList();
 
@@ -64,14 +72,18 @@ namespace ConferencePlanner.FrontEnd.Pages
 
         public async Task<IActionResult> OnPostAsync(int sessionId)
         {
+            _logger.LogDebug("Adding {UserName} as attendee for Session {SessionId}", User.Identity.Name, sessionId);
             await _apiClient.AddSessionToAttendeeAsync(User.Identity.Name, sessionId);
+            _logger.LogDebug("Added {UserName} as attendee for Session {SessionId}", User.Identity.Name, sessionId);
 
             return RedirectToPage();
         }
 
         public async Task<IActionResult> OnPostRemoveAsync(int sessionId)
         {
+            _logger.LogDebug("Removing {UserName} from attendees of Session {SessionId}", User.Identity.Name, sessionId);
             await _apiClient.RemoveSessionFromAttendeeAsync(User.Identity.Name, sessionId);
+            _logger.LogDebug("Removed {UserName} from attendees of Session {SessionId}", User.Identity.Name, sessionId);
 
             return RedirectToPage();
         }

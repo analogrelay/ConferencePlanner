@@ -1,0 +1,15 @@
+metricbeat.modules:
+- module: docker
+  metricsets: ["container", "cpu", "diskio", "healthcheck", "info", "memory", "network"]
+  hosts: ["unix:///var/run/docker.sock"]
+  enabled: true
+  period: 10s
+
+output.elasticsearch:
+  hosts: ["http://elasticsearch:9200"]
+  template.enabled: true
+  template.path: "metricbeat.template.json"
+  template.overwrite: false
+  index: "metricbeat-%{+yyyy.MM.dd}"
+  username: "elastic"
+  password: "changeme"

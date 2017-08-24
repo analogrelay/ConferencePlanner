@@ -9,6 +9,7 @@ using ConferencePlanner.Common.Metrics;
 using ConferencePlanner.FrontEnd.Infrastructure;
 using ConferencePlanner.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace ConferencePlanner.FrontEnd.Services
@@ -17,9 +18,9 @@ namespace ConferencePlanner.FrontEnd.Services
     {
         private readonly HttpClient _httpClient;
 
-        public ApiClient(IOptions<ApiOptions> options, IMetricsService metricsService, IHttpContextAccessor httpContextAccessor)
+        public ApiClient(IOptions<ApiOptions> options, IMetricsService metricsService, IHttpContextAccessor httpContextAccessor, ILoggerFactory loggerFactory)
         {
-            _httpClient = new HttpClient(new MetricTrackingHandler(httpContextAccessor, metricsService, new HttpClientHandler()))
+            _httpClient = new HttpClient(new LoggingHandler(loggerFactory, new MetricTrackingHandler(httpContextAccessor, metricsService, new HttpClientHandler()))
             {
                 BaseAddress = new Uri(options.Value.Url)
             };

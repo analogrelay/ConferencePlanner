@@ -50,15 +50,15 @@ namespace ConferencePlanner.Common.Metrics
                 payload.Add(new LineProtocolPoint(point.Measurement, point.Fields, point.Tags, point.UtcTimestamp));
             }
 
-            _logger.LogDebug("Writing batch of {batchCount} points to InfluxDb", points.Length);
+            _logger.LogTrace("Writing batch of {BatchCount} points to InfluxDb", points.Length);
             var result = _client.WriteAsync(payload).Result;
             if(result.Success)
             {
-                _logger.LogDebug("Batch written successfully");
+                _logger.LogTrace("Batch written successfully");
             }
             else
             {
-                _logger.LogError("Failed to write batch to InfluxDb. Error: {errorMessage}", result.ErrorMessage);
+                _logger.LogError("Failed to write batch to InfluxDb. Error: {ErrorMessage}", result.ErrorMessage);
             }
         }
     }
