@@ -1,6 +1,6 @@
 <Project>
     <PropertyGroup>
-        <AspNetCoreVersion>2.0.0</AspNetCoreVersion>
+        <AspNetCoreVersion>2.1.0-*</AspNetCoreVersion>
         <SwashbuckleVersion>1.0.0</SwashbuckleVersion>
         <NewtonsoftJsonVersion>10.0.2</NewtonsoftJsonVersion>
         <ComponentModelAnnotationsVersion>4.4.0</ComponentModelAnnotationsVersion>
