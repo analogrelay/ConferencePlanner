@@ -1,21 +1,30 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using App.Metrics;
+using ConferencePlanner.Common.Metrics;
 using ConferencePlanner.FrontEnd.Infrastructure;
 using ConferencePlanner.Models;
+using Microsoft.Extensions.Options;
 
 namespace ConferencePlanner.FrontEnd.Services
 {
     public class ApiClient : IApiClient
     {
         private readonly HttpClient _httpClient;
+        private readonly IMetrics _metrics;
 
-        public ApiClient(HttpClient httpClient)
+        public ApiClient(IOptions<ApiOptions> options, IMetrics metrics)
         {
-            _httpClient = httpClient;
+            _httpClient = new HttpClient(new MetricTrackingHttpMessageHandler(metrics, new HttpClientHandler()))
+            {
+                BaseAddress = new Uri(options.Value.ServiceUrl),
+            };
+            _metrics = metrics;
         }
 
         public async Task<AttendeeResponse> GetMeAsync(string accessToken)

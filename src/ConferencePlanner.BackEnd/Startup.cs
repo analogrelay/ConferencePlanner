@@ -1,10 +1,12 @@
 using System.Threading.Tasks;
+using App.Metrics;
 using ConferencePlanner.BackEnd.Data;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,6 +31,17 @@ namespace ConferencePlanner.BackEnd
             // * Authentication:ClientId
             // * ConnectionStrings:DefaultConnectionString
 
+            // Metrics!
+            services.AddMetrics()
+                .AddJsonSerialization()
+                .AddHealthChecks(factory =>
+                {
+                    factory.RegisterProcessPrivateMemorySizeHealthCheck("Private Memory Size", 200 * 1024 * 1024);
+                    factory.RegisterProcessVirtualMemorySizeHealthCheck("Virtual Memory Size", 200 * 1024 * 1024);
+                    factory.RegisterProcessPhysicalMemoryHealthCheck("Working Set", 200 * 1024 * 1024);
+                })
+                .AddMetricsMiddleware();
+
             services.AddDbContext<ApplicationDbContext>(options =>
             {
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
@@ -47,7 +60,11 @@ namespace ConferencePlanner.BackEnd
                     options.Audience = Configuration["Authentication:ClientId"];
                 });
 
-            services.AddMvc()
+            services
+                .AddMvc(options =>
+                {
+                    options.AddMetricsResourceFilter();
+                })
                 .AddJsonOptions(options =>
                 {
                     options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
@@ -91,6 +108,8 @@ namespace ConferencePlanner.BackEnd
             );
 
             app.UseAuthentication();
+
+            app.Map("/_metrics", subapp => subapp.UseMetrics());
 
             app.UseMvc();
 

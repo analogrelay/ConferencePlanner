@@ -5,5 +5,6 @@
         <NewtonsoftJsonVersion>10.0.2</NewtonsoftJsonVersion>
         <ComponentModelAnnotationsVersion>4.4.0</ComponentModelAnnotationsVersion>
         <IdentityClientVersion>1.1.0-preview</IdentityClientVersion>
+        <AppMetricsVersion>2.0.0-*</AppMetricsVersion>
     </PropertyGroup>
 </Project>

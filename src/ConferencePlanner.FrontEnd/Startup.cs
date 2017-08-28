@@ -1,5 +1,3 @@
-using System;
-using System.Net.Http;
 using ConferencePlanner.FrontEnd.Authentication;
 using ConferencePlanner.FrontEnd.Filters;
 using ConferencePlanner.FrontEnd.Services;
@@ -9,6 +7,7 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,10 +33,17 @@ namespace ConferencePlanner.FrontEnd
             // * Authentication:ClientId
             // * Authentication:ClientSecret
 
+            // Metrics!
+            services.AddMetrics()
+                .AddJsonSerialization()
+                .AddHealthChecks()
+                .AddMetricsMiddleware();
+
             services
                 .AddMvc(options =>
                 {
                     options.Filters.AddService<EnsureProfileCompleteFilter>();
+                    options.AddMetricsResourceFilter();
                 })
                 .AddRazorPagesOptions(options =>
                 {
@@ -73,11 +79,7 @@ namespace ConferencePlanner.FrontEnd
                 });
             });
 
-            var httpClient = new HttpClient
-            {
-                BaseAddress = new Uri(Configuration["serviceUrl"])
-            };
-            services.AddSingleton(httpClient);
+            services.Configure<ApiOptions>(Configuration.GetSection("Api"));
             services.AddSingleton<IApiClient, ApiClient>();
         }
 
@@ -105,6 +107,8 @@ namespace ConferencePlanner.FrontEnd
             app.UseStaticFiles();
 
             app.UseAuthentication();
+
+            app.Map("/_metrics", subapp => subapp.UseMetrics());
 
             app.UseMvc(routes =>
             {
