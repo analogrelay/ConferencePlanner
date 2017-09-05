@@ -83,8 +83,6 @@ namespace ConferencePlanner.FrontEnd
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
-            loggerFactory.AddApplicationInsights(app.ApplicationServices);
-
             var telemetryConfiguration = app.ApplicationServices.GetService<TelemetryConfiguration>();
             if (telemetryConfiguration != null)
             {
