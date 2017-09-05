@@ -6,7 +6,7 @@ services:
     expose:
       - "80"
     build:
-      context: ./src/BackEnd
+      context: ./src/ConferencePlanner.BackEnd
       dockerfile: Dockerfile
       args:
         source: './bin/${BUILDCONFIGURATION:-Debug}/netcoreapp2.0/publish'
@@ -21,7 +21,7 @@ services:
     environment:
       ServiceUrl: 'http://backend'
     build:
-      context: ./src/FrontEnd
+      context: ./src/ConferencePlanner.FrontEnd
       dockerfile: Dockerfile
       args:
         source: './bin/${BUILDCONFIGURATION:-Debug}/netcoreapp2.0/publish'
