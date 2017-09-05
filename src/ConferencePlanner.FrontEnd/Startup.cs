@@ -83,6 +83,10 @@ namespace ConferencePlanner.FrontEnd
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
+            // Copied from https://github.com/aspnet/AzureIntegration/blob/dev/src/Microsoft.AspNetCore.ApplicationInsights.HostingStartup/ApplicationInsightsLoggerStartupFilter.cs
+            var loggerEnabled = true;
+            loggerFactory.AddApplicationInsights(app.ApplicationServices, (s, level) => loggerEnabled, () => loggerEnabled = false);
+
             var telemetryConfiguration = app.ApplicationServices.GetService<TelemetryConfiguration>();
             if (telemetryConfiguration != null)
             {
